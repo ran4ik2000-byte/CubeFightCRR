@@ -4182,4 +4182,266 @@ addEventListener('beforeunload',function(){try{if(FR.peer)FR.peer.destroy()}catc
 setTimeout(function(){frStart(function(){})},2500);
 })();
 </script>
+
+<style id="cf-auth-styles">
+#cfAuthGate{position:fixed;inset:0;z-index:300;display:none;align-items:center;justify-content:center;padding:16px;padding-top:calc(16px + env(safe-area-inset-top,0px));padding-bottom:calc(16px + env(safe-area-inset-bottom,0px));overflow:auto;background:radial-gradient(circle at 50% 28%,rgba(18,35,18,.97),rgba(0,0,0,.99));color:#fff;text-align:center;font-family:'Press Start 2P','Courier New',monospace;}
+#cfAuthGate,#cfAuthGate *{box-sizing:border-box}
+#cfAuthPanel{display:flex;flex-direction:column;gap:14px;width:min(440px,94vw);max-height:calc(100dvh - 32px);overflow:auto;padding:clamp(18px,4vw,28px);background:linear-gradient(#262a26f2,#111411f5);border:4px solid #000;box-shadow:inset 3px 3px 0 #4a574a,inset -3px -3px 0 #050805,0 0 0 2px #7bd35a,0 0 40px #7bd35a33;}
+#cfAuthPanel h1{margin:0;text-align:center;font-size:clamp(22px,5vw,30px);letter-spacing:2px;color:#9ff07f;background:none;-webkit-text-fill-color:#9ff07f;filter:none;text-shadow:3px 3px #000;}
+#cfAuthPanel .cf-subtitle{margin:0;color:#e4f4df;font-family:system-ui,Arial,sans-serif;font-size:15px;line-height:1.5;}
+#cfAuthPanel .cf-mode-switch{display:grid;grid-template-columns:1fr 1fr;gap:8px;}
+#cfAuthPanel .cf-mode-switch button{min-height:48px;padding:10px 8px!important;font-size:12px!important;line-height:1.45;}
+#cfAuthPanel .cf-mode-switch button[aria-pressed="true"]{background:var(--tex-moss,#2f6b2a) 0 0/64px 64px!important;outline:2px solid #9ff07f;outline-offset:1px;}
+#cfAuthForm{display:flex;flex-direction:column;gap:12px;text-align:left;}
+#cfAuthForm label{display:flex;flex-direction:column;gap:7px;color:#d8efd1;font-family:system-ui,Arial,sans-serif;font-size:14px;line-height:1.4;}
+#cfAuthForm input{width:100%;min-height:48px;padding:12px 14px;border:2px solid #000;border-radius:0;background:#101510;color:#fff;font:16px/1.4 system-ui,Arial,sans-serif;box-shadow:inset 2px 2px 0 #0008;}
+#cfAuthForm input:focus-visible,#cfAuthPanel button:focus-visible{outline:3px solid #b9f6a0;outline-offset:3px;}
+#cfAuthSubmit{min-height:54px;font-size:13px!important;line-height:1.5;}
+#cfAuthStatus{min-height:24px;margin:0;padding:0;color:#e8f2e5;font-family:system-ui,Arial,sans-serif;font-size:14px;line-height:1.5;text-align:left;}
+#cfAuthStatus[data-tone="error"]{color:#ffaaa1;}
+#cfAuthStatus[data-tone="success"]{color:#a7f58a;}
+#cfAuthHelp{margin:0;padding:10px;background:#101510;border:1px solid #7bd35a66;color:#e3efd9;font-family:system-ui,Arial,sans-serif;font-size:14px;line-height:1.5;text-align:left;}
+#cfAuthHelp b{color:#b9f6a0;}
+#cfAuthPanel .cf-footnote{margin:0;color:#c8d0c5;font-family:system-ui,Arial,sans-serif;font-size:14px;line-height:1.5;}
+#cfAuthPanel button:disabled{cursor:wait;opacity:.65;filter:grayscale(.5);}
+#cfAccountLabel{max-width:100%;overflow-wrap:anywhere;color:#d8efd1;font:14px/1.5 system-ui,Arial,sans-serif;text-align:center;}
+#mMain #bAccountLogout{min-height:54px;font-size:11px!important;line-height:1.5;}
+body.mob #menu #mMain{max-height:calc(100dvh - 12px)!important;overflow-y:auto!important;overscroll-behavior:contain;}
+@media(max-height:560px){#cfAuthGate{align-items:flex-start}#cfAuthPanel{max-height:calc(100dvh - 24px);gap:10px;padding:14px}#cfAuthPanel h1{font-size:20px}#cfAuthForm{gap:8px}#cfAuthForm input{min-height:44px}}
+@media(prefers-reduced-motion:reduce){#cfAuthGate *{scroll-behavior:auto!important;transition:none!important;animation:none!important}}
+</style>
+<div id="cfAuthGate" role="dialog" aria-modal="true" aria-labelledby="cfAuthTitle" aria-describedby="cfAuthIntro" tabindex="-1">
+  <section id="cfAuthPanel">
+    <h1 id="cfAuthTitle">CUBEFIGHT</h1>
+    <p id="cfAuthIntro" class="cf-subtitle">Сначала войдите или создайте аккаунт, чтобы открыть игру.</p>
+    <div class="cf-mode-switch" role="group" aria-label="Действие с аккаунтом">
+      <button id="cfModeSignup" type="button" aria-pressed="true">Регистрация</button>
+      <button id="cfModeLogin" type="button" aria-pressed="false">Вход</button>
+    </div>
+    <p id="cfAuthStatus" role="status" aria-live="polite"></p>
+    <p id="cfAuthHelp"><b>Нужна настройка:</b> укажи URL проекта Supabase и публичный ключ в блоке <code>SUPABASE_URL</code> и <code>SUPABASE_PUBLIC_KEY</code> внизу файла. Не вставляй секретный/service-role ключ.</p>
+    <form id="cfAuthForm" novalidate>
+      <label for="cfAuthEmail">Электронная почта
+        <input id="cfAuthEmail" name="email" type="email" inputmode="email" autocomplete="email" maxlength="254" required placeholder="name@example.com">
+      </label>
+      <label for="cfAuthPassword">Пароль
+        <input id="cfAuthPassword" name="password" type="password" autocomplete="new-password" minlength="8" maxlength="128" required placeholder="Не менее 8 символов">
+      </label>
+      <label id="cfConfirmWrap" for="cfAuthConfirm">Повтори пароль
+        <input id="cfAuthConfirm" name="confirmPassword" type="password" autocomplete="new-password" minlength="8" maxlength="128" placeholder="Ещё раз пароль">
+      </label>
+      <button id="cfAuthSubmit" type="submit">Создать аккаунт</button>
+    </form>
+    <p class="cf-footnote">Для подтверждения регистрации может понадобиться открыть письмо от Supabase.</p>
+  </section>
+</div>
+<script>
+(function(){
+  'use strict';
+  // Вставь сюда Project URL и публичный anon/publishable key из настроек Supabase.
+  // Никогда не используй здесь service_role / secret key.
+  const SUPABASE_URL = 'https://rrsixkrwhiyyqziamhtr.supabase.co';
+  const SUPABASE_PUBLIC_KEY = 'sb_publishable_sExuE3WAB40YQ0F69bZ1yw_bxBQAUAv';
+
+  const byId = id => document.getElementById(id);
+  const gate = byId('cfAuthGate');
+  const form = byId('cfAuthForm');
+  const emailInput = byId('cfAuthEmail');
+  const passwordInput = byId('cfAuthPassword');
+  const confirmInput = byId('cfAuthConfirm');
+  const confirmWrap = byId('cfConfirmWrap');
+  const submitButton = byId('cfAuthSubmit');
+  const status = byId('cfAuthStatus');
+  const help = byId('cfAuthHelp');
+  const modeSignup = byId('cfModeSignup');
+  const modeLogin = byId('cfModeLogin');
+  let authClient = null;
+  let sdkPromise = null;
+  let mode = 'signup';
+  let authenticated = false;
+  let firstDeviceChoiceHandled = false;
+  let authCallbackInstalled = false;
+  let logoutInProgress = false;
+
+  function isConfigured(){
+    return /^https:\/\/[a-z0-9-]+\.supabase\.co\/?$/i.test(SUPABASE_URL) &&
+      !!SUPABASE_PUBLIC_KEY && !/YOUR_|service_role|secret/i.test(SUPABASE_PUBLIC_KEY);
+  }
+  function setStatus(message,tone){
+    status.textContent=message||'';
+    status.dataset.tone=tone||'';
+  }
+  function setMode(next){
+    mode=next==='login'?'login':'signup';
+    const signingUp=mode==='signup';
+    modeSignup.setAttribute('aria-pressed',String(signingUp));
+    modeLogin.setAttribute('aria-pressed',String(!signingUp));
+    confirmWrap.hidden=!signingUp;
+    confirmInput.required=signingUp;
+    passwordInput.autocomplete=signingUp?'new-password':'current-password';
+    confirmInput.value='';
+    submitButton.textContent=signingUp?'Создать аккаунт':'Войти в CubeFight';
+    setStatus('');
+  }
+  function showGate(message,tone,nextMode){
+    if(nextMode)setMode(nextMode);
+    gate.style.display='flex';
+    help.style.display=isConfigured()?'none':'block';
+    if(message)setStatus(message,tone);
+    setTimeout(()=>{try{emailInput.focus({preventScroll:true})}catch(e){}},0);
+  }
+  function hideGate(){gate.style.display='none';}
+  function setAuthenticated(user){
+    authenticated=!!(user&&user.id);
+    if(!authenticated)return;
+    const label=byId('cfAccountLabel');
+    if(label)label.textContent='Аккаунт: '+(user.email||'выполнен вход');
+    hideGate();
+  }
+  function friendlyError(error){
+    const m=String(error&&error.message||'').toLowerCase();
+    if(m.includes('invalid login credentials'))return 'Неверная почта или пароль.';
+    if(m.includes('email not confirmed'))return 'Сначала подтверди почту по ссылке из письма.';
+    if(m.includes('already registered')||m.includes('user already registered'))return 'Этот адрес уже зарегистрирован — выбери «Вход». ';
+    if(m.includes('password')&&m.includes('least'))return 'Пароль слишком короткий. Используй не менее 8 символов.';
+    if(m.includes('rate limit')||m.includes('too many requests'))return 'Слишком много попыток. Подожди немного и попробуй ещё раз.';
+    return String(error&&error.message||'Не удалось выполнить запрос. Проверь настройки Supabase и интернет.');
+  }
+  function loadSdk(){
+    if(window.supabase&&typeof window.supabase.createClient==='function')return Promise.resolve();
+    if(sdkPromise)return sdkPromise;
+    sdkPromise=new Promise((resolve,reject)=>{
+      const existing=document.querySelector('script[data-cubefight-supabase]');
+      if(existing){existing.addEventListener('load',()=>window.supabase&&window.supabase.createClient?resolve():reject(new Error('SDK не загрузился.')),{once:true});existing.addEventListener('error',()=>reject(new Error('Не удалось загрузить библиотеку авторизации.')),{once:true});return;}
+      const script=document.createElement('script');
+      script.src='https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2';
+      script.async=true;script.dataset.cubefightSupabase='true';
+      script.onload=()=>window.supabase&&typeof window.supabase.createClient==='function'?resolve():reject(new Error('SDK загрузился некорректно.'));
+      script.onerror=()=>reject(new Error('Не удалось загрузить Supabase Auth. Проверь подключение к интернету.'));
+      document.head.appendChild(script);
+    });
+    return sdkPromise;
+  }
+  async function getClient(){
+    if(!isConfigured())throw new Error('Сначала укажи корректные Supabase URL и публичный ключ в HTML-файле.');
+    if(/service_role|secret/i.test(SUPABASE_PUBLIC_KEY))throw new Error('В HTML нельзя помещать секретный ключ. Используй только публичный anon/publishable key.');
+    await loadSdk();
+    if(!authClient)authClient=window.supabase.createClient(SUPABASE_URL,SUPABASE_PUBLIC_KEY,{
+      auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:true}
+    });
+    if(!authCallbackInstalled){
+      authCallbackInstalled=true;
+      authClient.auth.onAuthStateChange((event,session)=>{
+        if(session&&session.user)setAuthenticated(session.user);
+        else if(event==='SIGNED_OUT'&&!logoutInProgress&&authenticated){
+          authenticated=false;
+          showGate('Сессия завершена. Войди снова.','', 'login');
+        }
+      });
+    }
+    return authClient;
+  }
+  async function afterDeviceChoice(){
+    if(firstDeviceChoiceHandled)return;
+    firstDeviceChoiceHandled=true;
+    showGate('Проверяю подключение…','');
+    try{
+      const client=await getClient();
+      const {data,error}=await client.auth.getSession();
+      if(error)throw error;
+      if(data&&data.session&&data.session.user){setAuthenticated(data.session.user);}
+      else showGate('Создай аккаунт или войди, чтобы продолжить.','', 'signup');
+    }catch(error){
+      showGate(friendlyError(error),'error','signup');
+    }
+  }
+  modeSignup.addEventListener('click',()=>setMode('signup'));
+  modeLogin.addEventListener('click',()=>setMode('login'));
+  form.addEventListener('input',()=>{if(status.textContent)setStatus('');});
+  form.addEventListener('submit',async event=>{
+    event.preventDefault();
+    if(!form.reportValidity())return;
+    const email=emailInput.value.trim();
+    const password=passwordInput.value;
+    if(password.length<8){setStatus('Пароль должен содержать не менее 8 символов.','error');return;}
+    if(mode==='signup'&&password!==confirmInput.value){setStatus('Пароли не совпадают.','error');confirmInput.focus();return;}
+    submitButton.disabled=true;
+    submitButton.textContent=mode==='signup'?'Создаю аккаунт…':'Проверяю вход…';
+    try{
+      const client=await getClient();
+      if(mode==='signup'){
+        const {data,error}=await client.auth.signUp({email,password});
+        if(error)throw error;
+        if(data&&data.session&&data.session.user){
+          setAuthenticated(data.session.user);
+          setStatus('Аккаунт создан.','success');
+        }else{
+          setMode('login');
+          setStatus('Регистрация принята. Открой письмо для подтверждения почты, затем войди.','success');
+          passwordInput.value='';confirmInput.value='';
+        }
+      }else{
+        const {data,error}=await client.auth.signInWithPassword({email,password});
+        if(error)throw error;
+        if(!data||!data.session||!data.user)throw new Error('Сессия не получена. Проверь почту и пароль.');
+        setAuthenticated(data.user);
+        passwordInput.value='';confirmInput.value='';
+      }
+    }catch(error){setStatus(friendlyError(error),'error');}
+    finally{
+      submitButton.disabled=false;
+      submitButton.textContent=mode==='signup'?'Создать аккаунт':'Войти в CubeFight';
+    }
+  });
+
+  // В игре уже есть экран выбора телефона/ПК. После этого выбора сначала открываем авторизацию.
+  ['dPh','dPc'].forEach(id=>{
+    const button=byId(id);
+    if(button)button.addEventListener('click',afterDeviceChoice);
+  });
+
+  // Пользовательский статус и выход размещаются в существующем главном меню.
+  const mainPanel=byId('mMain');
+  if(mainPanel&&!byId('bAccountLogout')){
+    const accountLabel=document.createElement('div');
+    accountLabel.id='cfAccountLabel';
+    accountLabel.setAttribute('aria-live','polite');
+    accountLabel.textContent='';
+    const logoutButton=document.createElement('button');
+    logoutButton.id='bAccountLogout';logoutButton.type='button';logoutButton.textContent='Выйти из аккаунта';
+    const exitButton=byId('bExit');
+    mainPanel.insertBefore(accountLabel,exitButton||null);
+    mainPanel.insertBefore(logoutButton,exitButton||null);
+    logoutButton.addEventListener('click',async()=>{
+      if(!authenticated){showGate('Сначала войди в аккаунт.','error','login');return;}
+      logoutButton.disabled=true;
+      logoutInProgress=true;
+      try{
+        if(authClient){const {error}=await authClient.auth.signOut();if(error)throw error;}
+        authenticated=false;
+        accountLabel.textContent='';
+        showGate('Ты вышел из аккаунта. Чтобы играть, войди снова.','success','login');
+      }catch(error){setStatus(friendlyError(error),'error');}
+      finally{logoutInProgress=false;logoutButton.disabled=false;}
+    });
+  }
+
+  // Закрываем любые обычные клики по меню и запуск игры, пока нет валидной сессии.
+  document.addEventListener('click',event=>{
+    if(authenticated)return;
+    const target=event.target;
+    if(target&&target.closest&&target.closest('#menu')){
+      event.preventDefault();event.stopImmediatePropagation();
+      if(firstDeviceChoiceHandled)showGate('Сначала войди или зарегистрируйся.','error','signup');
+    }
+  },true);
+  document.addEventListener('keydown',event=>{
+    if(!authenticated&&firstDeviceChoiceHandled&&event.key==='Escape'){
+      event.preventDefault();event.stopImmediatePropagation();
+    }
+  },true);
+  setMode('signup');
+})();
+</script>
+
 </body></html>
