@@ -411,7 +411,7 @@ function localizeNode(node){if(!node)return;if(node.nodeType===3){const pt=node.
 function applyLanguage(){localizeNode(document.body);const b=$('bLang');if(b)b.textContent=lang==='en'?'🌐 Language: English':'🌐 Язык: Русский'}
 const langObserver=new MutationObserver(rs=>{for(const r of rs){if(r.type==='characterData')localizeNode(r.target);else for(const n of r.addedNodes)localizeNode(n)}});langObserver.observe(document.body,{subtree:true,childList:true,characterData:true});
 applyLanguage();
-const NET={on:false,role:'',live:false,ready:false,room:false,started:false,mul:1,seed:0,idx:0,id:0,over:0,rx:0,peer:null,conn:null,peers:{},gl:[],av:{},emap:{},gone:{},dq:[],hp:{},dn:{},players:[],eid:0,nextId:0,name:'Игрок',code:'',curEl:0,hostReady:false,hostRan:false,waitReady:0,
+const NET={on:false,role:'',live:false,ready:false,room:false,started:false,mul:1,seed:0,runId:0,startMsg:null,startRetry:null,idx:0,id:0,over:0,rx:0,peer:null,conn:null,peers:{},gl:[],av:{},emap:{},gone:{},dq:[],hp:{},dn:{},players:[],eid:0,nextId:0,name:'Игрок',code:'',curEl:0,hostReady:false,hostRan:false,waitReady:0,
  bc(m){for(const id in NET.peers){const c=NET.peers[id].conn;if(c&&c.open)try{c.send(m)}catch(e){}}},
  sendTo(id,m){const q=NET.peers[id];if(q&&q.conn&&q.conn.open)try{q.conn.send(m)}catch(e){}},
  toHost(m){if(NET.conn&&NET.conn.open)try{NET.conn.send(m)}catch(e){}}};
@@ -2809,7 +2809,7 @@ NET.toLobby=function(){
  NET.rsClear();clearTimeout(NET.startTO);
  en.splice(0).forEach(e=>scene.remove(e.g));
  for(const id in NET.av)scene.remove(NET.av[id].g);
- Object.assign(NET,{av:{},emap:{},gone:{},dq:[],on:false,live:false,ready:false,started:false,over:0,hostReady:false,hostRan:false,waitReady:0});
+ clearInterval(NET.startRetry);NET.startRetry=null;NET.startMsg=null;Object.assign(NET,{av:{},emap:{},gone:{},dq:[],on:false,live:false,ready:false,started:false,over:0,hostReady:false,hostRan:false,waitReady:0});
  p.down=false;p.rvT=0;$('downMsg').style.display='none';$('mpl').innerHTML='';
  $('dead').classList.remove('show');state='over';$('ttl').textContent='плаtega';$('bStart').textContent='Играть';
  try{document.exitPointerLock()}catch(e){}
@@ -2986,7 +2986,7 @@ NET.revive=function(){
 NET.checkOver=function(){
  if(!NET.on||NET.over||NET.role!=='host')return;
  if(!p.down||NET.gl.some(q=>!q.down))return;
- NET.bc({t:'over',n:round});netEndAll()};
+ NET.bc({t:'over',n:round,rid:NET.runId});netEndAll()};
 NET.eById=id=>en.find(e=>e.id===id);
 
 // ---------- хост: обработка сообщений от гостей ----------
@@ -3008,7 +3008,7 @@ function hostData(conn,m){
  else if(m.t==='cr'){NET.rx=1;try{crater(+m.x,+m.z,+m.R,+m.m)}finally{NET.rx=0}NET.bc({t:'cr',x:m.x,z:m.z,R:m.R,m:m.m})}
  else if(m.t==='rs'){if(NET.rsOn&&!q.rs){q.rs=true;NET.rsCheck()}}
   else if(m.t==='tsReq'){if(q.g.down||stopT>0){NET.sendTo(q.id,{t:'tsReject',by:q.id});return}if(beginTimeStop())NET.bc({t:'tsStart',by:q.id})}
- else if(m.t==='rdy'){if(!q.ready){q.ready=true;NET.waitReady--;if(NET.waitReady<=0)NET.runHostStart()}}
+ else if(m.t==='rdy'){if((m.rid==null||m.rid===NET.runId)&&!q.ready){q.ready=true;NET.waitReady=Math.max(0,NET.waitReady-1);if(NET.waitReady===0)NET.runHostStart()}}
   else if(m.t==='dd'){if(!q.g.down&&dropValid(m.k,m.i)&&isFinite(+m.x)&&isFinite(+m.z)&&pickups.length<300){const did='h'+(++_dropId),x=Math.min(W-MG,Math.max(MG,+m.x)),z=Math.min(W-MG,Math.max(MG,+m.z)),y=+m.y||0;addDrop(did,m.k,m.i,x,y,z);NET.bc({t:'da',did,k:m.k,i:m.i,x,y,z})}}
   else if(m.t==='dp'){dropTake(String(m.did),conn._id)}
    else if(m.t==='cmd'){if(m.pw!==CS_PASS)return;const c=String(m.c||'').toLowerCase().slice(0,20),a=(Array.isArray(m.a)?m.a:[]).slice(0,8).map(x=>String(x).slice(0,24));
@@ -3054,7 +3054,7 @@ function guestData(m){
    case 'chat':chatMsg(String(m.m||'').slice(0,160),m.c==='i'||m.c==='j'?m.c:'');break;
    case 'da':if(NET.ready)addDrop(String(m.did),m.k,m.i,+m.x,+m.y,+m.z);break;
    case 'dx':{const pk=pickups.find(q=>q.did===m.did);if(pk)removeDrop(pk);if(m.by===NET.id)dropGive(m.k,m.i);break}
-   case 'over':if(!NET.over){round=m.n||round;netEndAll()}break}}
+   case 'over':if((m.rid==null||m.rid===NET.runId)&&!NET.over){round=m.n||round;netEndAll()}break}}
 function guestClosed(){
  if(!NET.role)return;
  const wasLive=NET.on;mpLeave();
@@ -3063,29 +3063,31 @@ function guestClosed(){
 
 // ---------- запуск игры ----------
 function mpGuestStart(m){
+ const rid=Number.isInteger(m.rid)?m.rid:null;if(rid!==null&&rid<NET.runId)return;if(rid!==null&&NET.started&&NET.runId===rid&&NET.ready){NET.toHost({t:'rdy',rid});return}if(rid!==null)NET.runId=rid;
  NET.seed=m.seed;NET.mul=m.mul||1;NET.players=m.pl;const me=m.pl.find(q=>q.id===NET.id);NET.idx=me?me.idx:1;
  NET.on=true;NET.over=0;NET.live=true;NET.ready=false;NET.started=true;NET.emap={};NET.gone={};NET.dq=[];
  for(const id in NET.av)scene.remove(NET.av[id].g);NET.av={};
  NET.rsClear();heartT=1e9;state='menu';$('dead').classList.remove('show');$('bDR').style.display='none';$('ttl').textContent='плаtega';
  $('bStart').onclick();
  p.down=false;p.x=CX+.5+NET.idx*1.1;p.z=CZ+.5;p.y=H(p.x|0,p.z|0);cy=p.y;
- NET.ready=true;NET.toHost({t:'rdy'})}
+ NET.ready=true;NET.toHost({t:'rdy',rid:NET.runId})}
 NET.runHostStart=function(){
- clearTimeout(NET.startTO);if(NET.hostRan)return;NET.hostRan=true;NET.rsClear();
+ clearTimeout(NET.startTO);clearInterval(NET.startRetry);NET.startRetry=null;NET.startMsg=null;if(NET.hostRan)return;NET.hostRan=true;NET.rsClear();
  state='menu';$('dead').classList.remove('show');$('bDR').style.display='';$('ttl').textContent='плаtega';
  $('bStart').onclick();p.down=false;NET.hostReady=true;
  NET.gl.forEach((q,i)=>{q.x=CX+.5+(i+1)*1.1;q.z=CZ+.5;q.y=H(q.x|0,q.z|0);q.hp=20;q.down=false})};
 function mpHostStart(){
+ clearTimeout(NET.startTO);clearInterval(NET.startRetry);NET.startRetry=null;NET.runId=(NET.runId||0)+1;
  const peers=Object.values(NET.peers);
  const pl=[{id:0,name:NET.name,idx:0}].concat(peers.map((q,i)=>({id:q.id,name:q.name,idx:i+1})));
  NET.players=pl;NET.seed=(Math.random()*2147483647)|0;NET.mul=1+.7*(pl.length-1);
  NET.on=true;NET.live=true;NET.over=0;NET.started=true;NET.hostRan=false;NET.hostReady=false;NET.emap={};NET.gone={};
  for(const id in NET.av)scene.remove(NET.av[id].g);NET.av={};
  peers.forEach(q=>{q.ready=false;q.g.down=false;q.g.hp=20});
- NET.bc({t:'start',seed:NET.seed,pl,mul:NET.mul});
- NET.waitReady=peers.length;
+ NET.waitReady=peers.length;NET.startMsg={t:'start',rid:NET.runId,seed:NET.seed,pl,mul:NET.mul};
+ NET.bc(NET.startMsg);
  if(!NET.waitReady)NET.runHostStart();
- else{$('mpLMsg').textContent='Загрузка мира у игроков…';NET.startTO=setTimeout(NET.runHostStart,12000)}}
+ else{$('mpLMsg').textContent='Загрузка мира у игроков…';NET.startRetry=setInterval(()=>{if(NET.hostRan){clearInterval(NET.startRetry);NET.startRetry=null;return}for(const q of Object.values(NET.peers))if(!q.ready)NET.sendTo(q.id,NET.startMsg)},800);NET.startTO=setTimeout(NET.runHostStart,12000)}}
 
 // ---------- сетевой цикл ----------
 let _netAcc=0,_netHud=0;
@@ -3156,8 +3158,8 @@ function mpLeave(){
  try{if(NET.peer)NET.peer.destroy()}catch(e){}
  for(const id in NET.av)scene.remove(NET.av[id].g);
  if(NET.on){en.splice(0).forEach(e=>scene.remove(e.g))}
- clearTimeout(NET.startTO);NET.rsClear();
- Object.assign(NET,{on:false,role:'',live:false,ready:false,started:false,room:false,peer:null,conn:null,peers:{},gl:[],av:{},emap:{},gone:{},dq:[],hp:{},dn:{},players:[],mul:1,over:0,hostReady:false,hostRan:false,waitReady:0,id:0,idx:0,nextId:0});
+ clearTimeout(NET.startTO);clearInterval(NET.startRetry);NET.startRetry=null;NET.startMsg=null;NET.rsClear();
+ Object.assign(NET,{on:false,role:'',live:false,ready:false,started:false,room:false,peer:null,conn:null,peers:{},gl:[],av:{},emap:{},gone:{},dq:[],hp:{},dn:{},players:[],mul:1,over:0,hostReady:false,hostRan:false,waitReady:0,id:0,idx:0,nextId:0,runId:0});
  heartT=6;wxT=75;timePending=false;p.down=false;p.rvT=0;NET.rvp={};NET.near=-1;NET.rvTgt=-1;{const sc=document.getElementById('sysChat');if(sc)sc.innerHTML=''}$('downMsg').style.display='none';$('mpl').innerHTML='';$('bDR').style.display='';_netAcc=0}
 function mpCreate(){
  mpName();mpMsg('Создаём комнату…');
