@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="ru"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
-<title>CubeFight</title><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap">
+<title>плаtega</title><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap">
 <style>
 #fpsBox{position:fixed;left:8px;top:8px;z-index:9999;padding:4px 8px;background:#000a;color:#7bff7b;font:bold 13px/1.3 monospace;border-radius:4px;pointer-events:none;display:none;white-space:pre}
 #mSet{max-height:92vh;overflow:auto}
@@ -343,9 +343,9 @@ body.creative #hp,body.creative #stw,body.creative #hh,body.creative #stL,body.c
  </div>
 </div>
 <div id="menu">
- <div class="panel" id="mMain"><div id="sandFx"></div><h1 id="ttl">CUBEFIGHT</h1>
+ <div class="panel" id="mMain"><div id="sandFx"></div><h1 id="ttl">плаtega</h1>
   <button id="bStart">Играть</button><button id="bToMenu" style="display:none">В главное меню</button><button id="bLocal">Локальная игра</button><button id="bSet">Настройки</button><div class="row"><button id="bCase">Кейсы</button><button id="bInv">Инвентарь</button></div><div id="mInfo"></div>
-  <a id="cfTelegramLink" class="cf-telegram-link" href="https://t.me/REPLACE_WITH_CHANNEL" target="_blank" rel="noopener noreferrer" aria-label="Открыть Telegram-канал CubeFight в новой вкладке">
+  <a id="cfTelegramLink" class="cf-telegram-link" href="https://t.me/REPLACE_WITH_CHANNEL" target="_blank" rel="noopener noreferrer" aria-label="Открыть Telegram-канал плаtega в новой вкладке">
    <svg class="cf-telegram-icon" viewBox="0 0 48 48" role="img" aria-label="Telegram">
     <circle cx="24" cy="24" r="22" fill="#29A9E8"/>
     <path d="M10.8 23.2 35.9 13.5c1.2-.5 2.3.3 1.9 1.8l-4.3 20.2c-.3 1.4-1.2 1.7-2.4 1l-7-5.2-3.4 3.3c-.4.4-.8.8-1.6.8l.5-7.2 13.1-11.8c.6-.5-.1-.8-.9-.3l-16.2 10.2-7-2.2c-1.5-.5-1.5-1.5.2-2.1Z" fill="#fff"/>
@@ -1843,7 +1843,7 @@ document.addEventListener('pointerlockchange',()=>{
  if(document.pointerLockElement){state='playing';$('menu').style.display='none'}
  else if(state==='playing'){state='paused';$('ttl').textContent='ПАУЗА';$('bStart').textContent='Продолжить';if(invAfterLock){invAfterLock=0;showMenu('mQ')}else{quickMenu=0;showMenu('mMain')}}});
 $('bStart').onclick=()=>{musicStart('battle');try{if(state!=='paused')newGame()}catch(e){setTimeout(()=>{throw e})}
- $('ttl').textContent='CUBEFIGHT';lock();
+ $('ttl').textContent='плаtega';lock();
  // запасной вариант: если браузер не дал захватить мышь (например, в окне предпросмотра) — всё равно начинаем игру
  setTimeout(()=>{if(!document.pointerLockElement&&state!=='playing'){state='playing';$('menu').style.display='none'}},150)};
 addEventListener('keydown',e=>{if(e.code==='Escape'&&state==='playing'&&!document.pointerLockElement){state='paused';$('ttl').textContent='ПАУЗА';$('bStart').textContent='Продолжить';showMenu('mMain')}});
@@ -2471,7 +2471,7 @@ $('mInv').onclick=e=>{const t=e.target.closest('[data-t]');if(t){invTab=t.datase
  const q=e.target.closest('.sq[data-id]');if(q){invSel=q.dataset.id;if(invMulti){const it=ITEMS.find(x=>x.id===invSel);if(canSell(it)){invPick.has(invSel)?invPick.delete(invSel):invPick.add(invSel)}}renderInv();return}const x=e.target.closest('[data-act]');if(x&&!x.disabled)invAct(x.dataset.act)};
 $('mInv').ondblclick=e=>{if(invMulti)return;const q=e.target.closest('.sq[data-id]');if(q){const id=q.dataset.id;FOODS.some(f=>f.id===id)?eatFood(id):equip(id);renderInv()}};
 $('bInv').onclick=()=>{quickMenu=0;invMulti=0;invPick.clear();renderInv();showMenu('mInv')};$('bBackI').onclick=()=>showMenu(quickMenu?'mQ':'mMain');
-$('bDM').onclick=()=>{$('dead').classList.remove('show');state='over';$('ttl').textContent='CUBEFIGHT';$('bStart').textContent='Начать';showMenu('mMain')};
+$('bDM').onclick=()=>{$('dead').classList.remove('show');state='over';$('ttl').textContent='плаtega';$('bStart').textContent='Начать';showMenu('mMain')};
 $('bDR').onclick=()=>{$('dead').classList.remove('show');$('bStart').onclick()};
 document.querySelectorAll('#mMain button').forEach((b,i)=>b.style.animationDelay=.15+i*.09+'s');
 {const sf=$('sandFx');for(let i=0;i<34;i++){const e=document.createElement('i');e.className='sd';e.style.cssText='left:'+(Math.random()*100)+'%;--d:'+(1.6+Math.random()*2.2)+'s;--l:-'+(Math.random()*4)+'s';sf.appendChild(e)}}
@@ -2813,7 +2813,7 @@ NET.toLobby=function(){
  for(const id in NET.av)scene.remove(NET.av[id].g);
  Object.assign(NET,{av:{},emap:{},gone:{},dq:[],on:false,live:false,ready:false,started:false,over:0,hostReady:false,hostRan:false,waitReady:0});
  p.down=false;p.rvT=0;$('downMsg').style.display='none';$('mpl').innerHTML='';
- $('dead').classList.remove('show');state='over';$('ttl').textContent='CUBEFIGHT';$('bStart').textContent='Играть';
+ $('dead').classList.remove('show');state='over';$('ttl').textContent='плаtega';$('bStart').textContent='Играть';
  try{document.exitPointerLock()}catch(e){}
  if(NET.role==='host'){Object.values(NET.peers).forEach(q=>{q.ready=false;q.g.down=false;q.g.hp=20});mpShowLobby();mpLobbyBc()}
  else mpShowLobby()};
@@ -3031,7 +3031,7 @@ function guestData(m){
   case 'lobby':NET.players=m.pl;mpRenderLobby();break;
   case 'rsc':NET.rsCnt=[m.a,m.b];break;
   case 'tolobby':NET.toLobby();break;
-  case 'kick':{const why=m.why||'Вы не успели нажать «Начать сначала».';mpLeave();state='over';try{document.exitPointerLock()}catch(e){}$('dead').classList.remove('show');$('ttl').textContent='CUBEFIGHT';$('bStart').textContent='Играть';showMenu('mMain');alert(why);break}
+  case 'kick':{const why=m.why||'Вы не успели нажать «Начать сначала».';mpLeave();state='over';try{document.exitPointerLock()}catch(e){}$('dead').classList.remove('show');$('ttl').textContent='плаtega';$('bStart').textContent='Играть';showMenu('mMain');alert(why);break}
   case 'start':mpGuestStart(m);break;
   case 's':if(NET.ready)netApply(m);break;
   case 'k':{if(!NET.ready)break;const e=NET.emap[m.id];if(e)guestKill(e,true);else{burst(m.x,m.y+1,m.z,m.cr?0x4caf50:m.sk?0xe8e8dc:0x00a0aa);beep(520,.25,'triangle')}NET.gone[m.id]=performance.now()+1500;break}
@@ -3060,7 +3060,7 @@ function guestData(m){
 function guestClosed(){
  if(!NET.role)return;
  const wasLive=NET.on;mpLeave();
- if(wasLive){state='menu';try{document.exitPointerLock()}catch(e){}$('dead').classList.remove('show');$('ttl').textContent='CUBEFIGHT';$('bStart').textContent='Играть'}
+ if(wasLive){state='menu';try{document.exitPointerLock()}catch(e){}$('dead').classList.remove('show');$('ttl').textContent='плаtega';$('bStart').textContent='Играть'}
  showMenu('mMain');alert('Соединение с хостом потеряно — комната закрыта.')}
 
 // ---------- запуск игры ----------
@@ -3068,13 +3068,13 @@ function mpGuestStart(m){
  NET.seed=m.seed;NET.mul=m.mul||1;NET.players=m.pl;const me=m.pl.find(q=>q.id===NET.id);NET.idx=me?me.idx:1;
  NET.on=true;NET.over=0;NET.live=true;NET.ready=false;NET.started=true;NET.emap={};NET.gone={};NET.dq=[];
  for(const id in NET.av)scene.remove(NET.av[id].g);NET.av={};
- NET.rsClear();heartT=1e9;state='menu';$('dead').classList.remove('show');$('bDR').style.display='none';$('ttl').textContent='CUBEFIGHT';
+ NET.rsClear();heartT=1e9;state='menu';$('dead').classList.remove('show');$('bDR').style.display='none';$('ttl').textContent='плаtega';
  $('bStart').onclick();
  p.down=false;p.x=CX+.5+NET.idx*1.1;p.z=CZ+.5;p.y=H(p.x|0,p.z|0);cy=p.y;
  NET.ready=true;NET.toHost({t:'rdy'})}
 NET.runHostStart=function(){
  clearTimeout(NET.startTO);if(NET.hostRan)return;NET.hostRan=true;NET.rsClear();
- state='menu';$('dead').classList.remove('show');$('bDR').style.display='';$('ttl').textContent='CUBEFIGHT';
+ state='menu';$('dead').classList.remove('show');$('bDR').style.display='';$('ttl').textContent='плаtega';
  $('bStart').onclick();p.down=false;NET.hostReady=true;
  NET.gl.forEach((q,i)=>{q.x=CX+.5+(i+1)*1.1;q.z=CZ+.5;q.y=H(q.x|0,q.z|0);q.hp=20;q.down=false})};
 function mpHostStart(){
@@ -3208,10 +3208,10 @@ addEventListener('beforeunload',()=>{try{if(NET.peer)NET.peer.destroy()}catch(e)
  $('bToMenu').onclick=()=>{ // выход из одиночной игры в главное меню
   if(NET.on)return;try{clearBoss();domeClear();spidersClear();stopT=0}catch(e){}
   if(round-1>best){best=round-1;try{localStorage.setItem('cf_best',best)}catch(e){}}
-  state='over';try{document.exitPointerLock()}catch(e){}$('ttl').textContent='CUBEFIGHT';$('bStart').textContent='Играть';showMenu('mMain')};
+  state='over';try{document.exitPointerLock()}catch(e){}$('ttl').textContent='плаtega';$('bStart').textContent='Играть';showMenu('mMain')};
   $('bLocal').onclick=()=>{
   if(NET.on){ // уже в сетевой игре — кнопка «Покинуть комнату»
-   mpLeave();state='menu';try{document.exitPointerLock()}catch(e){}$('ttl').textContent='CUBEFIGHT';$('bStart').textContent='Играть';showMenu('mMain');return}
+   mpLeave();state='menu';try{document.exitPointerLock()}catch(e){}$('ttl').textContent='плаtega';$('bStart').textContent='Играть';showMenu('mMain');return}
   mpMsg('');showMenu('mMP');loadPeer(()=>{})};
  $('bMpBack').onclick=()=>showMenu('mMain');
  $('bMpCreate').onclick=mpCreate;
@@ -3830,7 +3830,7 @@ B.appendChild(M);
 var R=document.createElement('div');R.id='rot';R.textContent='📱↻ Поверните телефон горизонтально';B.appendChild(R);
 var D=document.createElement('div');D.id='devSel';
 var auto=false;try{auto=window.matchMedia('(pointer:coarse)').matches}catch(err){}
-D.innerHTML='<div class="dsb"><h2>CUBEFIGHT</h2><p>С какого устройства вы играете?<br>Which device are you using?</p><button id="dPh">📱 Телефон / Phone'+(auto?'<small>★ рекомендуется</small>':'')+'</button><button id="dPc">💻 ПК / PC'+(auto?'':'<small>★ рекомендуется</small>')+'</button></div>';
+D.innerHTML='<div class="dsb"><h2>плаtega</h2><p>С какого устройства вы играете?<br>Which device are you using?</p><button id="dPh">📱 Телефон / Phone'+(auto?'<small>★ рекомендуется</small>':'')+'</button><button id="dPc">💻 ПК / PC'+(auto?'':'<small>★ рекомендуется</small>')+'</button></div>';
 B.appendChild(D);
 var KS=['KeyW','KeyA','KeyS','KeyD','ShiftLeft','Space','KeyV'];
 var jid=null,lid=null,jx=0,jy=0,lx=0,ly=0,atkT=0,runOn=0;
@@ -4222,7 +4222,7 @@ body.mob #menu #mMain{max-height:calc(100dvh - 12px)!important;overflow-y:auto!i
 </style>
 <div id="cfAuthGate" role="dialog" aria-modal="true" aria-labelledby="cfAuthTitle" aria-describedby="cfAuthIntro" tabindex="-1">
   <section id="cfAuthPanel">
-    <h1 id="cfAuthTitle">CUBEFIGHT</h1>
+    <h1 id="cfAuthTitle">плаtega</h1>
     <p id="cfAuthIntro" class="cf-subtitle">Сначала войдите или создайте аккаунт, чтобы открыть игру.</p>
     <div class="cf-mode-switch" role="group" aria-label="Действие с аккаунтом">
       <button id="cfModeSignup" type="button" aria-pressed="true">Регистрация</button>
@@ -4290,7 +4290,7 @@ body.mob #menu #mMain{max-height:calc(100dvh - 12px)!important;overflow-y:auto!i
     confirmInput.required=signingUp;
     passwordInput.autocomplete=signingUp?'new-password':'current-password';
     confirmInput.value='';
-    submitButton.textContent=signingUp?'Создать аккаунт':'Войти в CubeFight';
+    submitButton.textContent=signingUp?'Создать аккаунт':'Войти в плаtega';
     setStatus('');
   }
   function showGate(message,tone,nextMode){
@@ -4400,7 +4400,7 @@ body.mob #menu #mMain{max-height:calc(100dvh - 12px)!important;overflow-y:auto!i
     }catch(error){setStatus(friendlyError(error),'error');}
     finally{
       submitButton.disabled=false;
-      submitButton.textContent=mode==='signup'?'Создать аккаунт':'Войти в CubeFight';
+      submitButton.textContent=mode==='signup'?'Создать аккаунт':'Войти в плаtega';
     }
   });
 
