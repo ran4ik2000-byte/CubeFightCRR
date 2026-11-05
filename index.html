@@ -1454,7 +1454,7 @@ function hudExtra(){lowHpFx();const m=1+Math.min(cmb,25)*.04;$('combo').innerHTM
  $('lowv').style.opacity=p.hp<=6&&p.hp>0?(.45+.35*Math.sin(performance.now()/180)):0;
  const ti=Math.floor(performance.now()/7000)%TIPS.length;if($('tip').dataset.i!=ti){$('tip').dataset.i=ti;$('tip').textContent=TIPS[ti]}}
 // ---------- игра ----------
-let state='menu',round=0,wait=0,heartT=6,lastHP='',waveMax=1,wavePending=0,waveBlur=0,waveBlurTimer=0,lowHpBlur=0;
+let state='menu',round=0,wait=0,heartT=6,lastHP='',waveMax=1,wavePending=0,waveBlur=0,waveBlurTimer=0,lowHpBlur=0;let ignoreUnlockAfterEnd=false,pauseOnLockLoss=false;
 const info=$('info'),ban=$('ban');
 function banner(t){ban.textContent=t;ban.style.opacity=1;setTimeout(()=>ban.style.opacity=0,2000)}
 // ---------- БОСС 50 волны ----------
@@ -1583,7 +1583,7 @@ function startRound(n,intro=false){round=n;wait=0;bossDead=0;if(intro){wavePendi
  for(let i=0,cnt=Math.round(Math.min(18,1+Math.floor((n-1)/3))*NET.mul);i<cnt;i++){let x,z,t=0;do{const a=rnd(0,6.28),A_=netAnchor();x=A_.x+Math.cos(a)*25;z=A_.z+Math.sin(a)*25;t++}while((x<MG||z<MG||x>W-MG||z>W-MG||H(x|0,z|0)>(t<200?12:30)||(t<290&&lvAt(x,z,.7)))&&t<300);
   {const cr=n>=15&&((n===15&&i===0)||Math.random()<Math.min(.35,(n-13)*.05)),sk=!cr&&n>=25&&((n===25&&i===1)||Math.random()<Math.min(.4,(n-23)*.05)),e=mkEnemy(Math.min(W-MG,Math.max(MG,x)),Math.min(W-MG,Math.max(MG,z)),cr,sk);e.hp=e.max=Math.round(5+n+n*n*.012);e.spd=2.6+Math.min(3.4,n*.07);e.dmg=1+Math.floor(n/7);e.cdm=Math.max(.6,1.5-n*.02);if(cr){e.hp=e.max=Math.round(e.max*.6);e.spd*=1.1}if(sk){e.archer=1;e.shot=rnd(1.2,2.2);e.spd*=.85;e.hp=e.max=Math.round(e.max*.7);e.dmg+=1}}}
  waveMax=en.filter(e=>!e.vil).length;if(!NETG())topUpVill();banner('ВОЛНА '+n)}
-function newGame(){clearBoss();domeClear();spidersClear();
+function newGame(){pauseOnLockLoss=false;$('bStart').textContent=lang==='en'?'Play':'Играть';clearBoss();domeClear();spidersClear();
  en.splice(0).forEach(e=>scene.remove(e.g));
  hearts.splice(0).forEach(h=>scene.remove(h.g));
  pickups.splice(0).forEach(p=>scene.remove(p.g));
@@ -1604,7 +1604,7 @@ function hurt(n,fx,fz,push){if(CREATIVE){p.hp=20;return}if(p.domeT>0){domeBlock(
  const sy=Math.sin(yaw),cy2=Math.cos(yaw),ang=Math.atan2(-fx*cy2+fz*sy,fx*sy+fz*cy2),ind=$('ind');
  ind.style.transition='none';ind.style.transform='rotate('+ang+'rad)';ind.style.opacity=1;ind.offsetWidth;ind.style.transition='opacity .9s';ind.style.opacity=0;
  if(p.hp<=0)end('Вы проиграли')}
-function end(t){clearBoss();domeClear();spidersClear();$('tsv').classList.remove('on');stopT=0;en.forEach(e=>{e.doom=0;e.shN=0});renderer.domElement.style.filter='';hbBlur='';$('dead').querySelector('h2').textContent=t||'Вы проиграли';if(round-1>best){best=round-1;try{localStorage.setItem('cf_best',best)}catch(e){}}musicStart('menu');beep(220,.35,'sawtooth');setTimeout(()=>beep(140,.6,'sawtooth'),260);state='over';document.exitPointerLock();$('dWave').textContent='Пройдено волн: '+(round-1)+' · Рекорд: '+best;$('dead').classList.add('show')}
+function end(t){clearBoss();domeClear();spidersClear();$('tsv').classList.remove('on');stopT=0;en.forEach(e=>{e.doom=0;e.shN=0});renderer.domElement.style.filter='';hbBlur='';$('dead').querySelector('h2').textContent=t||'Вы проиграли';if(round-1>best){best=round-1;try{localStorage.setItem('cf_best',best)}catch(e){}}musicStart('menu');beep(220,.35,'sawtooth');setTimeout(()=>beep(140,.6,'sawtooth'),260);state='over';ignoreUnlockAfterEnd=true;pauseOnLockLoss=false;document.exitPointerLock();$('dWave').textContent='Пройдено волн: '+(round-1)+' · Рекорд: '+best;$('dead').classList.add('show')}
 function kill(e){if(stopT>0&&!e.doomGo){e.doom=1;return}
  if(e.vil){burst(e.x,e.y+1,e.z,0xd9a77a);burst(e.x,e.y+1,e.z,0x8b6a45);dying.push({g:e.g,t:.7,cr:0});e.bar.visible=false;en.splice(en.indexOf(e),1);beep(520,.25,'triangle');if(Math.random()<.25)mkCoin(e.x+rnd(-.3,.3),e.z+rnd(-.3,.3),e.y+1.3);return}burst(e.x,e.y+1,e.z,e.cre?0x4caf50:e.sk?0xe8e8dc:0x00a0aa);burst(e.x,e.y+1,e.z,e.cre?0x222222:e.sk?0x888888:0x5e9a46);dying.push({g:e.g,t:.7,cr:e.crawl});e.bar.visible=false;en.splice(en.indexOf(e),1);beep(520,.25,'triangle');
  if(Math.random()<.12&&hearts.length<5)mkHeart(e.x,e.z);
@@ -1840,8 +1840,9 @@ let slot=0,HW=null;const FW={dmg:1,cd:.5,st:8,r:'c'},cw=()=>HW||FW;
 function showMenu(id){musicStart('menu');$('tsv').classList.remove('on');renderer.domElement.style.filter='';hbBlur='';if(id==='mMain')menuInfo();['mMain','mSet','mCase','mInv','mQ','mMP','mJoin','mLobby'].forEach(k=>$(k).style.display=k===id?'flex':'none');$('menu').style.display='flex';setTimeout(fitMenu,0)}
 function lock(){try{renderer.domElement.requestPointerLock()}catch(e){}}
 document.addEventListener('pointerlockchange',()=>{
- if(document.pointerLockElement){state='playing';$('menu').style.display='none'}
- else if(state==='playing'){state='paused';$('ttl').textContent='ПАУЗА';$('bStart').textContent='Продолжить';if(invAfterLock){invAfterLock=0;showMenu('mQ')}else{quickMenu=0;showMenu('mMain')}}});
+ if(document.pointerLockElement){ignoreUnlockAfterEnd=false;pauseOnLockLoss=true;state='playing';$('menu').style.display='none'}
+ else if(ignoreUnlockAfterEnd){ignoreUnlockAfterEnd=false;pauseOnLockLoss=false}
+ else if(state==='playing'&&pauseOnLockLoss){pauseOnLockLoss=false;state='paused';$('ttl').textContent='ПАУЗА';$('bStart').textContent='Продолжить';if(invAfterLock){invAfterLock=0;showMenu('mQ')}else{quickMenu=0;showMenu('mMain')}}});
 $('bStart').onclick=()=>{musicStart('battle');try{if(state!=='paused')newGame()}catch(e){setTimeout(()=>{throw e})}
  $('ttl').textContent='плаtega';lock();
  // запасной вариант: если браузер не дал захватить мышь (например, в окне предпросмотра) — всё равно начинаем игру
@@ -2469,7 +2470,7 @@ $('mInv').onclick=e=>{const t=e.target.closest('[data-t]');if(t){invTab=t.datase
 $('mInv').ondblclick=e=>{if(invMulti)return;const q=e.target.closest('.sq[data-id]');if(q){const id=q.dataset.id;FOODS.some(f=>f.id===id)?eatFood(id):equip(id);renderInv()}};
 $('bInv').onclick=()=>{quickMenu=0;invMulti=0;invPick.clear();renderInv();showMenu('mInv')};$('bBackI').onclick=()=>showMenu(quickMenu?'mQ':'mMain');
 $('bDM').onclick=()=>{$('dead').classList.remove('show');state='over';$('ttl').textContent='плаtega';$('bStart').textContent='Начать';showMenu('mMain')};
-$('bDR').onclick=()=>{$('dead').classList.remove('show');$('bStart').onclick()};
+$('bDR').onclick=()=>{$('dead').classList.remove('show');state='over';quickMenu=0;invAfterLock=0;$('bStart').onclick()};
 document.querySelectorAll('#mMain button').forEach((b,i)=>b.style.animationDelay=.15+i*.09+'s');
 {const sf=$('sandFx');for(let i=0;i<34;i++){const e=document.createElement('i');e.className='sd';e.style.cssText='left:'+(Math.random()*100)+'%;--d:'+(1.6+Math.random()*2.2)+'s;--l:-'+(Math.random()*4)+'s';sf.appendChild(e)}}
 {const f=document.createElement('div');f.id='mfx';for(let i=0;i<16;i++){const e=document.createElement('i');e.style.cssText='left:'+Math.random()*100+'%;--s:'+(14+Math.random()*34|0)+'px;--d:'+(9+Math.random()*10)+'s;--l:-'+Math.random()*12+'s';f.appendChild(e)}$('menu').prepend(f)}
@@ -3224,7 +3225,7 @@ addEventListener('beforeunload',()=>{try{if(NET.peer)NET.peer.destroy()}catch(e)
   const b=$('bDR');
   if(NET.role==='host'){if(!NET.rsOn||NET.hostRs)return;NET.hostRs=true;b.disabled=true;b.dataset.pr=1;NET.rsCheck()}
   else if(NET.role==='guest'&&NET.over){NET.toHost({t:'rs'});b.disabled=true;b.dataset.pr=1}
-  return}_dr()};
+  return}else{NET.rsClear();_dr()}};
  const _sm=showMenu;showMenu=function(id){_sm(id);{const tb=$('bToMenu');if(tb)tb.style.display=(id==='mMain'&&state==='paused'&&!NET.on)?'':'none'}if(id==='mMain'){$('bLocal').style.display=(state==='paused'&&!NET.on)?'none':'';$('bLocal').textContent=NET.on?'Покинуть комнату':'Локальная игра';setTimeout(fitMenu,0)}};
 }
 
