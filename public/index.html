@@ -3797,7 +3797,7 @@ body #menu #mLobby .mpp .frAdd{margin-left:auto;width:auto;font-size:9px!importa
 .frD{color:#666;font-size:10px}.frD.on{color:#5cff5c;text-shadow:0 0 6px #5cff5c}
 body #menu .frR button,body #menu #mLobby .frR button,body.mob #menu #mLobby .frR button{width:auto;flex:none;font-size:9px!important;padding:5px 8px!important;min-height:32px!important}
 #mLobby,#mFr{max-height:94vh;max-height:94dvh;overflow:auto;overflow-x:hidden;-webkit-overflow-scrolling:touch;overscroll-behavior:contain}
-#mFr{width:min(440px,92vw);gap:10px}
+#mFr{width:min(440px,92vw);gap:10px;background:linear-gradient(160deg,rgba(24,31,25,.96),rgba(8,12,9,.96))!important;border:2px solid rgba(123,211,90,.7)!important;box-shadow:inset 0 0 0 2px rgba(0,0,0,.45),0 18px 48px rgba(0,0,0,.78)!important;padding:clamp(16px,3vw,26px)!important}
 #frMe{display:flex;align-items:center;gap:8px;flex-wrap:wrap;font-size:10px}
 #frMyCode{color:#ffe27a;letter-spacing:2px;font-size:14px}
 body #menu #frMe button{width:auto;font-size:9px!important;padding:6px 10px!important;min-height:32px!important}
@@ -4619,7 +4619,6 @@ body.mob #phoneMenuScaleWrap{display:flex;}
 
 </body></html>
 <style id="cf-cloud-routes-style">
-#cfAccountFriends{width:100%;min-height:48px;background:linear-gradient(#477e9f,#295269)!important}
 #cfFriendStatus{min-height:22px;margin:0;color:#dcebd7;font:14px/1.45 system-ui,Arial,sans-serif;overflow-wrap:anywhere}
 #cfFriendStatus[data-tone="error"]{color:#ffaaa1}#cfFriendStatus[data-tone="success"]{color:#a7f58a}
 #frList .frR{flex-wrap:wrap}
@@ -4687,12 +4686,6 @@ body.mob #phoneMenuScaleWrap{display:flex;}
     originalRemove.call(this,key);
     if(this===localStorage&&cloudKeys.has(String(key))&&!window.cfHydrating&&window.cfCloudReady&&typeof window.cfCloudQueue==='function')window.cfCloudQueue();
   };
-
-  const main=$('mMain'),donate=$('bDonate');
-  if(main&&donate&&!$('cfAccountFriends')){
-    const b=document.createElement('button');b.id='cfAccountFriends';b.type='button';b.textContent='👥 Друзья';
-    main.insertBefore(b,donate);b.addEventListener('click',()=>window.cfOpenFriends&&window.cfOpenFriends(true));
-  }
 
   const friendsPanel=$('mFr');
   if(friendsPanel&&!$('cfFriendStatus')){
