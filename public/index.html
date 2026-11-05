@@ -1983,6 +1983,25 @@ let coins=0,own={s0:1},WP=ITEMS[0],AP={arm:0},eqW='s0',eqA='',busy=0,fd={},WP2=n
 try{const d=JSON.parse(localStorage.getItem('cf')||'{}');coins=d.coins|0;Object.assign(own,d.own||{});for(const k in own)if(!ITEMS.some(i=>i.id===k))delete own[k];own.s0=own.s0||1;if(d.eq&&own[d.eq])eqW=d.eq;if(d.ea&&own[d.ea])eqA=d.ea;fd=d.fd||{f3:3};for(const k in fd)if(!(fd[k]>0))delete fd[k];if(d.e2&&own[d.e2])eq2=d.e2;pearls=d.pl|0;bombs=d.bm|0;orbs=d.ob|0;heals=d.hl|0;fires=d.rg|0;scrolls=d.sc|0;tstops=d.ts|0;domes=d.dm|0}catch(e){}
 const save=()=>{try{localStorage.setItem('cf',JSON.stringify({coins,own,eq:WP.id,ea:AP.id||'',fd,e2:WP2?WP2.id:'',pl:pearls,bm:bombs,ob:orbs,hl:heals,rg:fires,sc:scrolls,ts:tstops,dm:domes}))}catch(e){}};
 let best=0;try{best=+localStorage.getItem('cf_best')||0}catch(e){}
+window.cfHydrateGameMemory=function(){
+ let d={};try{d=JSON.parse(localStorage.getItem('cf')||'{}')||{}}catch(e){}
+ coins=Number(d.coins)|0;own=Object.assign({s0:1},d.own&&typeof d.own==='object'?d.own:{});
+ for(const k in own)if(!ITEMS.some(i=>i.id===k))delete own[k];own.s0=own.s0||1;
+ fd=Object.assign({},d.fd&&typeof d.fd==='object'?d.fd:{f3:3});for(const k in fd)if(!(fd[k]>0))delete fd[k];
+ const item=id=>ITEMS.find(i=>i.id===id);
+ WP=item(d.eq);if(!WP||isA(WP)||!own[WP.id])WP=ITEMS[0];eqW=WP.id;
+ AP=item(d.ea);if(!AP||!isA(AP)||!own[AP.id])AP={arm:0};eqA=AP.id||'';
+ WP2=item(d.e2);if(!WP2||isA(WP2)||!own[WP2.id])WP2=null;eq2=WP2?WP2.id:'';
+ pearls=Number(d.pl)|0;bombs=Number(d.bm)|0;orbs=Number(d.ob)|0;heals=Number(d.hl)|0;fires=Number(d.rg)|0;scrolls=Number(d.sc)|0;tstops=Number(d.ts)|0;domes=Number(d.dm)|0;
+ best=0;try{best=Number(localStorage.getItem('cf_best'))||0}catch(e){}
+ const defaults={sens:1,fov:75,master:.5,mus:1,sfx:1,gfx:0,fps:0,rd:0,menuScale:85};Object.assign(S,defaults);
+ let prefs={};try{prefs=JSON.parse(localStorage.getItem('cf_set')||'{}')||{}}catch(e){}
+ Object.keys(defaults).forEach(k=>{if(typeof prefs[k]==='number'&&isFinite(prefs[k]))S[k]=prefs[k]});
+ [['sMenuScale','menuScale'],['sSens','sens'],['sFov','fov'],['sVol','master'],['sMus','mus'],['sSfx','sfx'],['sGfx','gfx'],['sRd','rd']].forEach(([id,k])=>{const el=$(id);if(el){el.value=String(S[k]);el.dispatchEvent(new Event('input',{bubbles:true}))}});
+ lang=localStorage.getItem('cf_lang')==='en'?'en':'ru';try{applyLanguage()}catch(e){}
+ try{if(typeof window.cfHydrateControls==='function')window.cfHydrateControls();const mp=$('mpName'),storedName=localStorage.getItem('cf_name');if(mp&&storedName)mp.value=storedName;}catch(e){}
+ try{applyGfx();fpsBtn();menuInfo();syncHeld();renderBar();renderInv();if($('mCase').style.display==='flex')renderCase();}catch(e){}
+};
 function menuInfo(){$('mInfo').innerHTML='<div>Монеты: <b>'+coins+'</b></div><div>Рекорд: <b>'+best+'</b></div>'}
 let mX=0,mY=0,mcX=0,mcZ=0;addEventListener('mousemove',e=>{mX=e.clientX/innerWidth-.5;mY=e.clientY/innerHeight-.5});
 let mcA=0,mcY=20;function menuCam(dt){mcA+=dt*.07;const x=CX+Math.cos(mcA)*26,z=CZ+Math.sin(mcA)*26,ty=Math.max(H(CX,CZ)+11,H(x|0,z|0)+6);mcY+=(ty-mcY)*Math.min(1,dt*2);
@@ -2539,47 +2558,9 @@ function giveItemLocal(id){
  else if(FOODS.includes(it))fd[it.id]=(fd[it.id]||0)+1;
  else own[it.id]=(own[it.id]||0)+1;
  save();try{renderBar();syncHeld()}catch(e){}return it}
-const csIsUid=t=>/^[A-HJ-NP-Z2-9]{8}$/i.test(String(t||''));
 function csCoinsUI(){save();$('coins').textContent='🪙 '+coins;try{menuInfo()}catch(e){}try{if($('mCase').style.display==='flex')renderCase();if($('mInv').style.display==='flex')renderInv()}catch(e){}}
-// получатель: применяет подарок по ID (работает и в главном меню, и в игре)
-function csApplyGift(m){
- let nm='Игрок';try{nm=($('mpName')&&$('mpName').value||'').trim().slice(0,12)||'Игрок'}catch(e){}
- const rep={t:'ok',r:'badpw',name:nm,what:''};
- if(!CS_PASS||!m||m.pw!==CS_PASS)return rep;
- if(m.k==='money'){
-  const n=Math.max(-1e9,Math.min(1e9,parseInt(m.n,10)||0));
-  if(m.set){coins=Math.max(0,n)}else{coins=Math.max(0,coins+n)}
-  csCoinsUI();rep.r='done';rep.what=m.set?('монеты = '+coins):('🪙 '+(n>=0?'+':'')+n+' (всего '+coins+')');
-  try{banner(m.set?'🎁 Монеты установлены: '+coins:'🎁 Вам выдали монеты: '+(n>=0?'+':'')+n)}catch(e){}}
- else if(m.k==='item'){
-  const q=Math.max(1,Math.min(99,parseInt(m.q,10)||1));let it=null;
-  for(let i=0;i<q;i++){it=giveItemLocal(m.id);if(!it)break}
-  if(!it){rep.r='noitem';return rep}
-  const qty=(it.util?(it.q||1):1)*q;rep.r='done';rep.what=it.n+' ×'+qty;
-  try{banner('🎁 Вам выдали: '+it.n+' ×'+qty)}catch(e){}}
- else{rep.r='noitem';return rep}
- try{beep(880,.12,'triangle')}catch(e){}
- return rep}
-// отправитель: шлёт подарок игроку по его ID (код друга)
-function csSendGift(uid,payload){
- uid=String(uid).toUpperCase();
- if(typeof frTalk!=='function'&&!window.frTalk){csLog('Система друзей не загружена','e');return}
- csLog('⏳ Отправляю игроку '+uid+'…','t');
- window.frTalk(uid,Object.assign({t:'gift',pw:CS_PASS},payload),(st,r)=>{
-  if(st==='ok'&&r&&r.r==='done')csLog('✅ '+(r.name||uid)+' ('+uid+') получил: '+r.what,'o');
-  else if(st==='ok'&&r&&r.r==='noitem')csLog('❌ У получателя нет такого предмета','e');
-  else if(st==='ok'&&r&&r.r==='badpw')csLog('❌ Получатель отклонил (другой пароль консоли)','e');
-  else if(st==='off')csLog('📴 ID '+uid+': игрок не в сети (игра должна быть открыта) или ID неверный','e');
-  else csLog('⚠ Нет связи с сервером. Попробуй ещё раз через пару секунд','e')})}
 function csGive(a){
- if(!a[0])return csLog('Использование: /give <ID> <предмет> [кол-во] · /give <ник> <предмет> · /give <предмет> (себе) · список: /items','e');
- if(a.length>=2&&csIsUid(a[0])&&!findItem(a[0].toLowerCase())&&!csFindPl(a[0])){
-  const uid=a[0].toUpperCase(),id=a[1].toLowerCase();
-  if(uid===FR.uid)a=a.slice(1);
-  else{
-   if(!findItem(id))return csLog('Нет такого предмета: '+id+' · список: /items','e');
-   let q=a[2]!==undefined?parseInt(a[2],10):1;if(!(q>0))q=1;
-   csSendGift(uid,{k:'item',id,q:Math.min(q,99)});return}}
+ if(!a[0])return csLog('Использование: /give <ник> <предмет> · /give <предмет> (себе) · список: /items','e');
  let q=null,rest=a;
  for(let k=a.length-1;k>=1&&!q;k--){const f=csFindPl(a.slice(0,k).join(' '));if(f){q=f;rest=a.slice(k)}}
  if(!q&&NET.on&&a.length>=2)return csLog('Игрок «'+a[0]+'» не найден · /players — список игроков','e');
@@ -2621,8 +2602,6 @@ function csDo(c,a){
    case 'help':case '?':case 'помощь':
    csLog('── КОМАНДЫ ──','h');
    csLog('/money <n> — выдать монеты (или /money set <n>, /money — показать)','i');
-   csLog('/money <ID> <n> — выдать монеты игроку по ID (можно из главного меню)','i');
-   csLog('/give <ID> <предмет> [кол-во] — выдать предмет игроку по ID, даже если он в меню','i');
    csLog('/id — показать свой ID (код друга) · игрок должен быть онлайн','i');
    csLog('/volna <n> — сразу на волну (50 = босс) · алиасы: /wave, /волна','i');
    csLog('/weather <имя> — погода: ясно, день, вечер, ночь, дождь, рассвет','i');
@@ -2639,11 +2618,6 @@ function csDo(c,a){
    break;
   case 'money':case 'coins':case 'мани':case 'деньги':case 'coin':
    if(!a.length)return csLog('🪙 Монет: '+coins,'o');
-   if(a.length>=2&&csIsUid(a[0])){
-    if(a[0].toUpperCase()===FR.uid)a=a.slice(1);
-    else{const set=a[1].toLowerCase()==='set',n=parseInt(set?a[2]:a[1],10);
-     if(!isFinite(n))return csLog('Сколько? /money <ID> 500 · /money <ID> set 500','e');
-     csSendGift(a[0],{k:'money',n,set:set?1:0});break}}
    if(a[0].toLowerCase()==='set'){coins=Math.max(0,parseInt(a[1],10)||0)}
    else{const n=parseInt(a[0],10);if(!isFinite(n))return csLog('Сколько дать? /money 500','e');coins=Math.max(0,coins+n)}
    csCoinsUI();
@@ -3147,7 +3121,7 @@ const PEER_OPTS={debug:0,config:{iceTransportPolicy:'all',iceCandidatePoolSize:4
 const netErr=t=>({'peer-unavailable':'Комната не найдена. Проверьте код (хозяин должен держать вкладку открытой).','network':'Нет связи с сервером PeerJS (возможно заблокирован провайдером или нет интернета). Попробуйте VPN.','server-error':'Сервер PeerJS недоступен. Попробуйте позже или включите VPN.','socket-error':'Сервер PeerJS недоступен (ошибка сокета). Попробуйте VPN.','socket-closed':'Соединение с сервером PeerJS закрыто.','webrtc':'Ошибка WebRTC: прямое соединение не вышло. Нужен TURN-сервер (см. настройки в коде).','browser-incompatible':'Браузер не поддерживает WebRTC.'}[t]||('Ошибка сети: '+t));
 function loadPeer(cb){
  if(window.Peer)return cb();
- const localPeer=location.protocol==='file:'?new URL('../vendor/peerjs-1.5.4.min.js',location.href).href:'/vendor/peerjs-1.5.4.min.js';
+ const localPeer=location.protocol==='file:'?new URL('vendor/peerjs-1.5.4.min.js',location.href).href:'/vendor/peerjs-1.5.4.min.js';
  const urls=[localPeer,'https://cdn.jsdelivr.net/npm/peerjs@1.5.4/dist/peerjs.min.js','https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js','https://cdnjs.cloudflare.com/ajax/libs/peerjs/1.5.4/peerjs.min.js'];
  let i=0;(function next(){if(i>=urls.length){cb('fail');return}
   const s=document.createElement('script');s.src=urls[i++];s.onload=()=>window.Peer?cb():next();s.onerror=()=>{s.remove();next()};document.head.appendChild(s)})()}
@@ -3847,7 +3821,7 @@ var R=document.createElement('div');R.id='rot';R.textContent='📱↻ Повер
 var D=document.createElement('div');D.id='devSel';
 var auto=false;try{auto=window.matchMedia('(pointer:coarse)').matches}catch(err){}
 D.innerHTML='<div class="dsb"><h2>CUBEFIGHT</h2><p>С какого устройства вы играете?<br>Which device are you using?</p><button id="dPh">📱 Телефон / Phone'+(auto?'<small>★ рекомендуется</small>':'')+'</button><button id="dPc">💻 ПК / PC'+(auto?'':'<small>★ рекомендуется</small>')+'</button></div>';
-B.appendChild(D);
+B.appendChild(D);D.style.display='none';
 var KS=['KeyW','KeyA','KeyS','KeyD','ShiftLeft','Space','KeyV'];
 var jid=null,lid=null,jx=0,jy=0,lx=0,ly=0,atkT=0,runOn=0;
 function setRun(v){runOn=v?1:0;keys.ShiftLeft=runOn;var b=$('bRun');if(b)b.classList.toggle('on',!!runOn)}
@@ -3855,7 +3829,7 @@ function relAll(){for(var i=0;i<KS.length;i++)keys[KS[i]]=0;setRun(0);jid=null;l
 function rq(el,fn){try{var r=el[fn]&&el[fn]({navigationUI:'hide'});if(r&&r.catch)r.catch(function(){})}catch(err){}}
 function setDev(ph){
  if(ph)B.classList.add('mob');else B.classList.remove('mob');
- D.style.display='none';
+ D.style.display='none';try{localStorage.setItem('cf_device',ph?'phone':'pc')}catch(err){}
  if(ph){rq(doc,'requestFullscreen');
   try{var o=screen.orientation.lock('landscape');if(o&&o.catch)o.catch(function(){})}catch(err){}
   try{if(navigator.wakeLock){var w=navigator.wakeLock.request('screen');if(w&&w.catch)w.catch(function(){})}}catch(err){}
@@ -3863,6 +3837,8 @@ function setDev(ph){
  else{try{if(localStorage.getItem('cf_mobgfx')&&S.gfx===1){var g2=$('sGfx');g2.value=0;g2.dispatchEvent(new Event('input'))}localStorage.removeItem('cf_mobgfx')}catch(err){}}
  relAll();fitMenu();setTimeout(fitMenu,300)}
 $('dPh').onclick=function(){setDev(true)};$('dPc').onclick=function(){setDev(false)};
+window.cfShowDeviceChoice=function(){D.style.display='flex'};
+window.cfSetDeviceChoice=function(choice){setDev(choice==='phone')};
 var bd=document.createElement('button');bd.id='bDev';bd.textContent='📱💻 Устройство / Device';var bbk=$('bBack');if(bbk&&bbk.parentNode)bbk.parentNode.insertBefore(bd,bbk);else{var msp=$('mSet')||$('menu');if(msp)msp.appendChild(bd)}bd.onclick=function(){D.style.display='flex'};
 var br=document.createElement('button');br.textContent='▶ Продолжить';var mqp=$('mQ');if(mqp)mqp.appendChild(br);br.onclick=function(){quickMenu=0;var bs=$('bStart');if(bs)bs.click()};
 document.addEventListener('gesturestart',function(e){e.preventDefault()});
@@ -3946,6 +3922,18 @@ function ctlApplyOne(id){
   st.left=c.x+'%';st.top=c.y+'%';st.transform='translate(-50%,-50%) scale('+s+')'}
  else if(s!==1){st.transform=(id==='bot'?'translateX(-50%) ':'')+'scale('+s+')';if(id==='bot')st.transformOrigin='50% 100%'}}
 function ctlApplyAll(){for(var i=0;i<CTL_IDS.length;i++)ctlApplyOne(CTL_IDS[i]);M.style.setProperty('--cop',ctl.o);M.style.setProperty('--js',ctl.j);RD=52*ctl.j}
+window.cfHydrateControls=function(){
+ ctl={o:1,j:1,e:{}};
+ try{var _c=JSON.parse(localStorage.getItem('cf_ctl')||'null');if(_c&&typeof _c==='object'){
+  ctl.o=(+_c.o>=.3&&+_c.o<=1)?+_c.o:1;ctl.j=(+_c.j>=.6&&+_c.j<=1.8)?+_c.j:1;
+  if(_c.e&&typeof _c.e==='object')for(var _k in _c.e){var q=_c.e[_k];if(!CTL_NAMES[_k]||!q||typeof q!=='object')continue;var n={};
+   if(typeof q.x==='number'&&typeof q.y==='number'&&isFinite(q.x)&&isFinite(q.y)){n.x=q.x;n.y=q.y}
+   if(typeof q.s==='number'&&isFinite(q.s))n.s=clampN(q.s,.4,2.5);
+   if(typeof q.a==='number'&&isFinite(q.a))n.a=clampN(q.a,.2,1);
+   if(q.h&&!CTL_NOHIDE[_k])n.h=1;
+   ctl.e[_k]=n}}}catch(err){}
+ ctlSel=null;ctlApplyAll();try{ctlSync();ctPrev()}catch(err){}
+};
 ctlApplyAll();
 // измерение позиций (элементы #mob видны только в режиме ctl — включаем его на один синхронный кадр)
 function ctlMeasure(fn){var m=!B.classList.contains('ctl')&&!B.classList.contains('ctlM');if(m)B.classList.add('ctlM');try{return fn()}finally{if(m)B.classList.remove('ctlM')}}
@@ -4103,7 +4091,7 @@ function frIn(conn){
   if(!m||typeof m!=='object')return;
   if(m.t==='who'){try{conn.send({t:'me',name:myName()})}catch(e){}}
   else if(m.t==='inv'){try{conn.send({t:'ok'})}catch(e){}frInvite(m)}
-  else if(m.t==='gift'){var r={t:'ok',r:'noitem'};try{if(typeof csApplyGift==='function')r=csApplyGift(m)}catch(e){}try{conn.send(r)}catch(e){}}});
+ });
  setTimeout(function(){try{conn.close()}catch(e){}},15000)}
 // разговор с другом: отправить сообщение и дождаться ответа
 window.frTalk=frTalk;
@@ -4285,8 +4273,9 @@ body.mob #menu #mMain{max-height:calc(100dvh - 12px)!important;overflow-y:auto!i
   let sdkPromise = null;
   let mode = 'signup';
   let authenticated = false;
-  let firstDeviceChoiceHandled = false;
   let authCallbackInstalled = false;
+  let accountBootPromise = null;
+  let accountBootUserId = null;
   let logoutInProgress = false;
 
   function isConfigured(){
@@ -4329,7 +4318,6 @@ body.mob #menu #mMain{max-height:calc(100dvh - 12px)!important;overflow-y:auto!i
     try{applyGfx()}catch(e){}
     try{localStorage.setItem(key,'1')}catch(e){}
   }
-  let accountBootRunning=false;
   const gameCacheKeys=['cf','cf_best','cf_set','cf_lang','cf_ctl','cf_name','cf_autogfx','cf_mobgfx','cf_uid','cf_friends'];
   function clearGameCache(){gameCacheKeys.forEach(k=>{try{localStorage.removeItem(k)}catch(e){}})}
   async function hydrateAccount(user){
@@ -4337,14 +4325,11 @@ body.mob #menu #mMain{max-height:calc(100dvh - 12px)!important;overflow-y:auto!i
     const {data:profile,error}=await client.from('cf_player_profiles').select('user_id,friend_code,save_data').eq('user_id',user.id).maybeSingle();
     if(error)throw error;
     if(!profile)throw new Error('Профиль базы не найден. Выполни supabase/schema.sql в Supabase SQL Editor.');
-    const marker='cf_account_boot_user';
-    if(sessionStorage.getItem(marker)===user.id){sessionStorage.removeItem(marker);return;}
     window.cfHydrating=true;
     try{
       let saved=profile.save_data&&typeof profile.save_data==='object'&&!Array.isArray(profile.save_data)?profile.save_data:{};
       const allowed=['cf','cf_best','cf_set','cf_lang','cf_ctl','cf_name','cf_autogfx','cf_mobgfx'];
-      // Claim legacy, pre-login progress only for the first account on this browser.
-      // After sign-out the owner marker prevents another account from inheriting it.
+      // Claim pre-login progress once, and never copy one account's data to another.
       if(!Object.keys(saved).length&&!localStorage.getItem('cf_owner_user_id')){
         const legacy={};
         allowed.forEach(k=>{try{const raw=localStorage.getItem(k);if(raw!==null){try{legacy[k]=JSON.parse(raw)}catch(e){legacy[k]=raw}}}catch(e){}});
@@ -4359,32 +4344,39 @@ body.mob #menu #mMain{max-height:calc(100dvh - 12px)!important;overflow-y:auto!i
       const {data:friends,error:friendsError}=await client.rpc('cf_list_friends');
       if(friendsError)throw friendsError;
       localStorage.setItem('cf_friends',JSON.stringify((friends||[]).map(f=>({u:f.friend_code,n:f.display_name||'Друг'}))));
-      sessionStorage.setItem(marker,user.id);
     }finally{window.cfHydrating=false;}
-    // The game reads localStorage during startup; reload once so all in-memory state matches this account.
-    window.location.reload();
   }
-  async function setAuthenticated(user){
-    if(!user||!user.id)return;
-    if(accountBootRunning)return;
-    accountBootRunning=true;
-    authenticated=true;
-    window.cfAccountUserId=user.id;
+  function setAuthenticated(user){
+    if(!user||!user.id)return Promise.resolve();
+    if(authenticated&&window.cfAccountUserId===user.id&&window.cfCloudReady){
+      hideGate();if(typeof window.cfApplyRoute==='function')window.cfApplyRoute();return Promise.resolve();
+    }
+    if(accountBootPromise)return accountBootUserId===user.id?accountBootPromise:Promise.resolve();
+    authenticated=true;window.cfAccountUserId=user.id;accountBootUserId=user.id;
     setStatus('Загружаю профиль и сохранение…','');
-    try{
-      await hydrateAccount(user);
-      applySafeDefaultsForNewAccount(user);
-      const label=byId('cfAccountLabel');
-      if(label)label.textContent='Аккаунт: '+(user.email||'выполнен вход');
-      window.cfCloudReady=true;
-      if(typeof window.cfCloudQueue==='function')window.cfCloudQueue();
-      hideGate();
-      if(typeof window.cfApplyRoute==='function')window.cfApplyRoute();
-    }catch(error){
-      authenticated=false;window.cfCloudReady=false;window.cfAccountUserId=null;
-      const m=String(error&&error.message||'');
-      showGate(m.toLowerCase().includes('cf_player_profiles')||m.toLowerCase().includes('schema cache')||m.toLowerCase().includes('cf_list_friends')?'База ещё не настроена. Выполни supabase/schema.sql в Supabase SQL Editor, затем попробуй снова.':friendlyError(error),'error','login');
-    }finally{accountBootRunning=false;}
+    const task=(async()=>{
+      try{
+        await hydrateAccount(user);
+        applySafeDefaultsForNewAccount(user);
+        if(typeof window.cfHydrateGameMemory==='function')window.cfHydrateGameMemory();
+        const label=byId('cfAccountLabel');
+        if(label)label.textContent='Аккаунт: '+(user.email||'выполнен вход');
+        window.cfCloudReady=true;
+        if(typeof window.cfCloudQueue==='function')window.cfCloudQueue();
+        hideGate();
+        const device=localStorage.getItem('cf_device');
+        if(device==='phone'||device==='pc'){
+          if(typeof window.cfSetDeviceChoice==='function')window.cfSetDeviceChoice(device);
+        }else if(typeof window.cfShowDeviceChoice==='function')window.cfShowDeviceChoice();
+        if(typeof window.cfApplyRoute==='function')window.cfApplyRoute();
+      }catch(error){
+        authenticated=false;window.cfCloudReady=false;window.cfAccountUserId=null;
+        const m=String(error&&error.message||'');
+        showGate(m.toLowerCase().includes('cf_player_profiles')||m.toLowerCase().includes('schema cache')||m.toLowerCase().includes('cf_list_friends')?'База ещё не настроена. Выполни supabase/schema.sql в Supabase SQL Editor, затем попробуй снова.':friendlyError(error),'error','login');
+      }
+    })();
+    accountBootPromise=task.finally(()=>{accountBootPromise=null;accountBootUserId=null;});
+    return accountBootPromise;
   }
   function friendlyError(error){
     const m=String(error&&error.message||'').toLowerCase();
@@ -4402,7 +4394,7 @@ body.mob #menu #mMain{max-height:calc(100dvh - 12px)!important;overflow-y:auto!i
       const existing=document.querySelector('script[data-cubefight-supabase]');
       if(existing){existing.addEventListener('load',()=>window.supabase&&window.supabase.createClient?resolve():reject(new Error('SDK не загрузился.')),{once:true});existing.addEventListener('error',()=>reject(new Error('Не удалось загрузить библиотеку авторизации.')),{once:true});return;}
       const script=document.createElement('script');
-      script.src=location.protocol==='file:'?new URL('../vendor/supabase-js-2.57.4.js',location.href).href:'/vendor/supabase-js-2.57.4.js';
+      script.src=location.protocol==='file:'?new URL('vendor/supabase-js-2.57.4.js',location.href).href:'/vendor/supabase-js-2.57.4.js';
       script.async=true;script.dataset.cubefightSupabase='true';
       script.onload=()=>window.supabase&&typeof window.supabase.createClient==='function'?resolve():reject(new Error('SDK загрузился некорректно.'));
       script.onerror=()=>reject(new Error('Не удалось загрузить Supabase Auth. Проверь подключение к интернету.'));
@@ -4420,29 +4412,27 @@ body.mob #menu #mMain{max-height:calc(100dvh - 12px)!important;overflow-y:auto!i
     if(!authCallbackInstalled){
       authCallbackInstalled=true;
       authClient.auth.onAuthStateChange((event,session)=>{
-        if(session&&session.user)setAuthenticated(session.user);
-        else if(event==='SIGNED_OUT'&&!logoutInProgress&&authenticated){
-          authenticated=false;
+        if(session&&session.user){
+          if(event==='SIGNED_IN'||event==='INITIAL_SESSION')setTimeout(()=>setAuthenticated(session.user).catch(()=>{}),0);
+        }else if(event==='SIGNED_OUT'&&!logoutInProgress&&authenticated){
+          authenticated=false;window.cfCloudReady=false;window.cfAccountUserId=null;
           showGate('Сессия завершена. Войди снова.','', 'login');
         }
       });
     }
     return authClient;
   }
-  async function afterDeviceChoice(){
-    if(firstDeviceChoiceHandled)return;
-    firstDeviceChoiceHandled=true;
-    showGate('Проверяю подключение…','');
+  async function bootAuth(){
+    showGate('Проверяю сохранённый вход…','');
     try{
       const client=await getClient();
       const {data,error}=await client.auth.getSession();
       if(error)throw error;
-      if(data&&data.session&&data.session.user){setAuthenticated(data.session.user);}
-      else showGate('Создай аккаунт или войди, чтобы продолжить.','', 'signup');
-    }catch(error){
-      showGate(friendlyError(error),'error','signup');
-    }
+      if(data&&data.session&&data.session.user)await setAuthenticated(data.session.user);
+      else showGate('Создай аккаунт или войди, чтобы продолжить.','','signup');
+    }catch(error){showGate(friendlyError(error),'error','signup');}
   }
+
   modeSignup.addEventListener('click',()=>setMode('signup'));
   modeLogin.addEventListener('click',()=>setMode('login'));
   form.addEventListener('input',()=>{if(status.textContent)setStatus('');});
@@ -4462,7 +4452,7 @@ body.mob #menu #mMain{max-height:calc(100dvh - 12px)!important;overflow-y:auto!i
         const {data,error}=await client.auth.signUp({email,password,options:{data:{cf_safe_defaults_v1:true},emailRedirectTo:window.location.origin+'/glavmenu/'}});
         if(error)throw error;
         if(data&&data.session&&data.session.user){
-          setAuthenticated(data.session.user);
+          await setAuthenticated(data.session.user);
           setStatus('Аккаунт создан.','success');
         }else{
           setMode('login');
@@ -4473,7 +4463,7 @@ body.mob #menu #mMain{max-height:calc(100dvh - 12px)!important;overflow-y:auto!i
         const {data,error}=await client.auth.signInWithPassword({email,password});
         if(error)throw error;
         if(!data||!data.session||!data.user)throw new Error('Сессия не получена. Проверь почту и пароль.');
-        setAuthenticated(data.user);
+        await setAuthenticated(data.user);
         passwordInput.value='';confirmInput.value='';
       }
     }catch(error){setStatus(friendlyError(error),'error');}
@@ -4481,12 +4471,6 @@ body.mob #menu #mMain{max-height:calc(100dvh - 12px)!important;overflow-y:auto!i
       submitButton.disabled=false;
       submitButton.textContent=mode==='signup'?'Создать аккаунт':'Войти в CUBEFIGHT';
     }
-  });
-
-  // В игре уже есть экран выбора телефона/ПК. После этого выбора сначала открываем авторизацию.
-  ['dPh','dPc'].forEach(id=>{
-    const button=byId(id);
-    if(button)button.addEventListener('click',afterDeviceChoice);
   });
 
   // Пользовательский статус и выход размещаются в существующем главном меню.
@@ -4522,11 +4506,11 @@ body.mob #menu #mMain{max-height:calc(100dvh - 12px)!important;overflow-y:auto!i
     const target=event.target;
     if(target&&target.closest&&target.closest('#menu')){
       event.preventDefault();event.stopImmediatePropagation();
-      if(firstDeviceChoiceHandled)showGate('Сначала войди или зарегистрируйся.','error','signup');
+      showGate('Сначала войди или зарегистрируйся.','error','signup');
     }
   },true);
   document.addEventListener('keydown',event=>{
-    if(!authenticated&&firstDeviceChoiceHandled&&event.key==='Escape'){
+    if(!authenticated&&event.key==='Escape'){
       event.preventDefault();event.stopImmediatePropagation();
     }
   },true);
@@ -4549,6 +4533,7 @@ body.mob #menu #mMain{max-height:calc(100dvh - 12px)!important;overflow-y:auto!i
   window.cfCloudSnapshot=accountSnapshot;
   window.cfCloudReady=false;
   setMode('signup');
+  bootAuth();
 })();
 </script>
 
@@ -4635,19 +4620,13 @@ body.mob #phoneMenuScaleWrap{display:flex;}
 </body></html>
 <style id="cf-cloud-routes-style">
 #cfAccountFriends{width:100%;min-height:48px;background:linear-gradient(#477e9f,#295269)!important}
-#cfFriendsTools{display:flex;flex-direction:column;gap:10px;padding:12px;border:2px solid #7bd35a77;background:#080d08c9;color:#fff;font:14px/1.45 system-ui,Arial,sans-serif}
-#cfFriendsTools h2{margin:0;color:#b9f6a0;font:11px/1.6 'Press Start 2P','Courier New',monospace}
-#cfFriendsTools label{display:flex;flex-direction:column;gap:6px;font:14px/1.4 system-ui,Arial,sans-serif;letter-spacing:0;text-align:left}
-#cfFriendsTools input,#cfFriendsTools select{width:100%;min-height:46px;box-sizing:border-box;padding:10px 12px;border:2px solid #000;background:#101510;color:#fff;font:16px/1.4 system-ui,Arial,sans-serif}
-#cfFriendsTools button{min-height:46px;font:12px/1.45 system-ui,Arial,sans-serif;letter-spacing:0}
 #cfFriendStatus{min-height:22px;margin:0;color:#dcebd7;font:14px/1.45 system-ui,Arial,sans-serif;overflow-wrap:anywhere}
 #cfFriendStatus[data-tone="error"]{color:#ffaaa1}#cfFriendStatus[data-tone="success"]{color:#a7f58a}
 #frList .frR{flex-wrap:wrap}
 #frList .frR .frN{flex:1 1 90px;min-width:0;overflow-wrap:anywhere}
-#frList .cf-gift-btn{background:linear-gradient(#c59b34,#806117)!important;font-size:10px!important;padding:8px!important}
 #frList .frGo,#frList .frX{font-size:10px!important;padding:8px!important}
-#cfFriendsTools button:focus-visible,#cfFriendsTools input:focus-visible,#cfFriendsTools select:focus-visible,#frList button:focus-visible{outline:3px solid #b9f6a0;outline-offset:2px}
-@media(max-width:560px){#cfFriendsTools{padding:10px}#frList .frR{gap:6px}}
+#frList button:focus-visible{outline:3px solid #b9f6a0;outline-offset:2px}
+@media(max-width:560px){#frList .frR{gap:6px}}
 </style>
 <script id="cf-cloud-and-routes">
 (function(){
@@ -4711,15 +4690,14 @@ body.mob #phoneMenuScaleWrap{display:flex;}
 
   const main=$('mMain'),donate=$('bDonate');
   if(main&&donate&&!$('cfAccountFriends')){
-    const b=document.createElement('button');b.id='cfAccountFriends';b.type='button';b.textContent='👥 Друзья и подарки';
+    const b=document.createElement('button');b.id='cfAccountFriends';b.type='button';b.textContent='👥 Друзья';
     main.insertBefore(b,donate);b.addEventListener('click',()=>window.cfOpenFriends&&window.cfOpenFriends(true));
   }
 
   const friendsPanel=$('mFr');
-  if(friendsPanel&&!$('cfFriendsTools')){
-    const tools=document.createElement('section');tools.id='cfFriendsTools';
-    tools.innerHTML='<h2>ПОДАРКИ ДРУЗЬЯМ</h2><label>Получатель <select id="cfGiftFriend"><option value="">Сначала добавь друга</option></select></label><label>Монеты <input id="cfGiftCoinsAmount" type="number" min="1" max="1000000" step="1" value="10" inputmode="numeric"></label><button id="cfGiftCoins" type="button">Передать монеты</button><label>Предмет из инвентаря <select id="cfGiftItem"><option value="">Нет предметов для передачи</option></select></label><label>Количество <input id="cfGiftItemAmount" type="number" min="1" max="99" step="1" value="1" inputmode="numeric"></label><button id="cfGiftItemButton" type="button">Передать предмет</button><p id="cfFriendStatus" role="status" aria-live="polite"></p>';
-    const list=$('frList');friendsPanel.insertBefore(tools,list||null);
+  if(friendsPanel&&!$('cfFriendStatus')){
+    const message=document.createElement('p');message.id='cfFriendStatus';message.setAttribute('role','status');message.setAttribute('aria-live','polite');
+    friendsPanel.insertBefore(message,$('frList')||null);
   }
 
   const status=(text,tone)=>{const el=$('cfFriendStatus');if(el){el.textContent=text||'';el.dataset.tone=tone||'';}};
@@ -4731,22 +4709,19 @@ body.mob #phoneMenuScaleWrap{display:flex;}
   function friendName(f){return String(f.n||'Друг').slice(0,32)}
   function renderFriends(){
     const fr=window.FR;if(!fr)return;
-    const list=$('frList'),me=$('frMyCode'),friendSelect=$('cfGiftFriend');
+    const list=$('frList'),me=$('frMyCode');
     if(me)me.textContent=fr.uid||'—';
-    if(friendSelect){const selected=friendSelect.value;friendSelect.innerHTML='<option value="">Выбери друга</option>';fr.list.forEach(f=>{const o=document.createElement('option');o.value=f.u;o.textContent=friendName(f)+' · '+f.u;friendSelect.appendChild(o)});if(fr.list.some(f=>f.u===selected))friendSelect.value=selected;}
     if(!list)return;
     list.replaceChildren();
-    if(!fr.list.length){const small=document.createElement('small');small.className='frHint';small.textContent='Друзей пока нет. Добавь друга по его 8-значному коду.';list.appendChild(small);renderGiftItems();return;}
+    if(!fr.list.length){const small=document.createElement('small');small.className='frHint';small.textContent='Друзей пока нет. Добавь друга по его 8-значному коду.';list.appendChild(small);return;}
     fr.list.forEach(f=>{
       const row=document.createElement('div');row.className='frR';
       const dot=document.createElement('span');dot.className='frD'+(fr.on[f.u]?' on':'');dot.textContent='●';
       const name=document.createElement('span');name.className='frN';name.textContent=friendName(f)+' · '+f.u;
       const invite=document.createElement('button');invite.className='frGo';invite.type='button';invite.dataset.u=f.u;invite.textContent='🎮 Позвать';
-      const gift=document.createElement('button');gift.className='cf-gift-btn';gift.type='button';gift.dataset.u=f.u;gift.textContent='🎁 Подарить';
       const remove=document.createElement('button');remove.className='cf-remove-friend';remove.type='button';remove.dataset.u=f.u;remove.setAttribute('aria-label','Удалить '+friendName(f));remove.textContent='✕';
-      row.append(dot,name,invite,gift,remove);list.appendChild(row);
+      row.append(dot,name,invite,remove);list.appendChild(row);
     });
-    renderGiftItems();
   }
   async function refreshFriends(){
     const rows=await rpc('cf_list_friends');const fr=window.FR;if(!fr)return;
@@ -4760,7 +4735,7 @@ body.mob #phoneMenuScaleWrap{display:flex;}
     if(!/^[A-HJ-NP-Z2-9]{8}$/.test(val))throw new Error('Код друга должен содержать 8 символов.');
     await rpc('cf_add_friend_by_code',{p_friend_code:val});
     await refreshFriends();
-    status('Друг добавлен. Теперь можно приглашать его и передавать подарки.','success');
+    status('Друг добавлен. Теперь можно приглашать его в игру.','success');
   }
   window.cfOpenFriends=function(updatePath){
     showFriendsPanel();
@@ -4779,9 +4754,7 @@ body.mob #phoneMenuScaleWrap{display:flex;}
   };
   const list=$('frList');
   if(list)list.addEventListener('click',async e=>{
-    const gift=e.target.closest&&e.target.closest('.cf-gift-btn');
     const remove=e.target.closest&&e.target.closest('.cf-remove-friend');
-    if(gift){const sel=$('cfGiftFriend');if(sel)sel.value=gift.dataset.u;status('Выбери монеты или предмет ниже.','');return;}
     if(remove){if(!confirm('Удалить друга из списка?'))return;remove.disabled=true;try{await rpc('cf_remove_friend_by_code',{p_friend_code:remove.dataset.u});await refreshFriends();status('Друг удалён.','success')}catch(err){status(err.message||'Не удалось удалить друга.','error')}finally{remove.disabled=false;}}
   });
   // Adding from a multiplayer lobby must create the durable account-level friendship too.
@@ -4791,55 +4764,6 @@ body.mob #phoneMenuScaleWrap{display:flex;}
     const code=b.getAttribute('data-u');addFriend(code).catch(err=>status(err.message||'Не удалось добавить друга.','error'));
   },true);
 
-  const itemBucket={pearl:['pl','pearls'],bomb:['bm','bombs'],orb:['ob','orbs'],heal:['hl','heals'],fire:['rg','fires'],scroll:['sc','scrolls'],time:['ts','tstops'],dome:['dm','domes']};
-  function giftableItems(){
-    const out=[];
-    try{
-      (ITEMS||[]).forEach(it=>{const q=Number(own[it.id]||0);if(q>0&&it.id!=='s0'&&it.id!==eqW&&it.id!==eqA&&it.id!==eq2)out.push({v:'gear:'+it.id,n:it.n,q});});
-      (FOODS||[]).forEach(it=>{const q=Number(fd[it.id]||0);if(q>0)out.push({v:'food:'+it.id,n:it.n,q});});
-      const utilCounts={pearl:pearls,bomb:bombs,orb:orbs,heal:heals,fire:fires,scroll:scrolls,time:tstops,dome:domes};
-      Object.keys(itemBucket).forEach(id=>{const q=Number(utilCounts[id]||0);if(q>0){const it=UTO[id];out.push({v:'util:'+id,n:it?it.n:id,q});}});
-    }catch(e){}
-    return out;
-  }
-  function renderGiftItems(){
-    const sel=$('cfGiftItem');if(!sel)return;const prior=sel.value;sel.innerHTML='';
-    const items=giftableItems();
-    if(!items.length){const o=document.createElement('option');o.value='';o.textContent='Нет предметов для передачи';sel.appendChild(o);return;}
-    const blank=document.createElement('option');blank.value='';blank.textContent='Выбери предмет';sel.appendChild(blank);
-    items.forEach(it=>{const o=document.createElement('option');o.value=it.v;o.textContent=it.n+' · в наличии: '+it.q;sel.appendChild(o)});
-    if(items.some(i=>i.v===prior))sel.value=prior;
-  }
-  async function applySavedState(saved){
-    if(!saved)return;
-    if(Number.isFinite(Number(saved.coins)))coins=Number(saved.coins);
-    if(saved.own&&typeof saved.own==='object'){own=Object.assign({s0:1},saved.own)}
-    if(saved.fd&&typeof saved.fd==='object')fd=saved.fd;
-    if(Number.isFinite(Number(saved.pl)))pearls=Number(saved.pl);
-    if(Number.isFinite(Number(saved.bm)))bombs=Number(saved.bm);
-    if(Number.isFinite(Number(saved.ob)))orbs=Number(saved.ob);
-    if(Number.isFinite(Number(saved.hl)))heals=Number(saved.hl);
-    if(Number.isFinite(Number(saved.rg)))fires=Number(saved.rg);
-    if(Number.isFinite(Number(saved.sc)))scrolls=Number(saved.sc);
-    if(Number.isFinite(Number(saved.ts)))tstops=Number(saved.ts);
-    if(Number.isFinite(Number(saved.dm)))domes=Number(saved.dm);
-    if(typeof save==='function')save();
-    if(typeof csCoinsUI==='function')csCoinsUI();
-    if(typeof renderInv==='function')renderInv();
-    renderGiftItems();
-  }
-  async function sendGift(kind){
-    const friend=$('cfGiftFriend')&&$('cfGiftFriend').value;
-    if(!friend)throw new Error('Сначала выбери друга.');
-    if(typeof window.cfCloudFlush==='function')await window.cfCloudFlush();
-    const result=await rpc('cf_gift',{p_friend_code:friend,p_kind:kind,p_item_id:kind==='item'?($('cfGiftItem').value.split(':')[1]||''):null,p_amount:kind==='coins'?Number($('cfGiftCoinsAmount').value):Number($('cfGiftItemAmount').value)});
-    if(!result||!result.ok)throw new Error('Передача не выполнена.');
-    await applySavedState(result.save);
-    status(kind==='coins'?'Монеты переданы. Баланс обновлён у вас; друг получит их в аккаунт.':'Предмет передан. Он сохранён в аккаунте друга.','success');
-  }
-  const giveCoins=$('cfGiftCoins'),giveItem=$('cfGiftItemButton');
-  if(giveCoins)giveCoins.addEventListener('click',async()=>{giveCoins.disabled=true;status('Передаю монеты…','');try{await sendGift('coins')}catch(e){status(e.message||'Передача не выполнена.','error')}finally{giveCoins.disabled=false;}});
-  if(giveItem)giveItem.addEventListener('click',async()=>{giveItem.disabled=true;status('Передаю предмет…','');try{if(!$('cfGiftItem').value)throw new Error('Сначала выбери предмет.');await sendGift('item')}catch(e){status(e.message||'Передача не выполнена.','error')}finally{giveItem.disabled=false;}});
   const friendButton=$('bFr');if(friendButton)friendButton.onclick=()=>window.cfOpenFriends(true);
   if($('bStart'))$('bStart').addEventListener('click',()=>{if(!routing)setPath('/game/',false)},false);
 })();
