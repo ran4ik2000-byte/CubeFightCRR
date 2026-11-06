@@ -1,9 +1,14 @@
 {
   "$schema": "node_modules/wrangler/config-schema.json",
   "name": "cubefightcrr",
+  "main": "src/worker.js",
   "compatibility_date": "2026-11-05",
   "assets": {
     "directory": "./public",
+    "binding": "ASSETS",
     "not_found_handling": "single-page-application"
+  },
+  "vars": {
+    "SUPABASE_URL": "https://rrsixkrwhiyyqziamhtr.supabase.co"
   }
 }

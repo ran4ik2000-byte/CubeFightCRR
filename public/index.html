@@ -1911,7 +1911,7 @@ document.addEventListener('pointerlockchange',()=>{
  if(document.pointerLockElement){ignoreUnlockAfterEnd=false;pauseOnLockLoss=true;state='playing';$('menu').style.display='none'}
  else if(ignoreUnlockAfterEnd){ignoreUnlockAfterEnd=false;pauseOnLockLoss=false}
  else if(state==='playing'&&pauseOnLockLoss){pauseOnLockLoss=false;state='paused';$('ttl').textContent='ПАУЗА';$('bStart').textContent='Продолжить';if(invAfterLock){invAfterLock=0;showMenu('mQ')}else{quickMenu=0;showMenu('mMain')}}});
-$('bStart').onclick=()=>{musicStart('battle');try{if(state!=='paused')newGame()}catch(e){setTimeout(()=>{throw e})}
+$('bStart').onclick=()=>{if(window.cfLocalGameBlocked&&state!=='paused'){banner('Локальная игра недоступна для этого аккаунта');return}musicStart('battle');try{if(state!=='paused')newGame()}catch(e){setTimeout(()=>{throw e})}
  $('ttl').textContent='CUBEFIGHT';lock();
  // запасной вариант: если браузер не дал захватить мышь (например, в окне предпросмотра) — всё равно начинаем игру
  setTimeout(()=>{if(!document.pointerLockElement&&state!=='playing'){state='playing';$('menu').style.display='none'}},150)};
@@ -4397,10 +4397,10 @@ body.mob #menu #mMain{max-height:calc(100dvh - 12px)!important;overflow-y:auto!i
   function clearGameCache(){gameCacheKeys.forEach(k=>{try{localStorage.removeItem(k)}catch(e){}})}
   async function hydrateAccount(user){
     const client=await getClient();
-    const {data:profile,error}=await client.from('cf_player_profiles').select('user_id,friend_code,display_name,save_data').eq('user_id',user.id).maybeSingle();
+    const {data:profile,error}=await client.from('cf_player_profiles').select('user_id,friend_code,display_name,save_data,local_game_blocked').eq('user_id',user.id).maybeSingle();
     if(error)throw error;
     if(!profile)throw new Error('Профиль базы не найден. Выполни supabase/schema.sql в Supabase SQL Editor.');
-    window.cfDisplayName=String(profile.display_name||'');if(typeof window.cfUpdateSettingsNickname==='function')window.cfUpdateSettingsNickname(window.cfDisplayName);
+    window.cfLocalGameBlocked=profile.local_game_blocked===true;window.cfDisplayName=String(profile.display_name||'');if(typeof window.cfUpdateSettingsNickname==='function')window.cfUpdateSettingsNickname(window.cfDisplayName);
     window.cfHydrating=true;
     try{
       let saved=profile.save_data&&typeof profile.save_data==='object'&&!Array.isArray(profile.save_data)?profile.save_data:{};
@@ -5492,4 +5492,7 @@ body.mob #menu #mSet{position:fixed!important;left:50%!important;top:50%!importa
 })();
 </script>
 
+<script id="cf-admin-public-settings">
+(()=>{async function apply(){try{const r=await fetch('/api/public-settings',{cache:'no-store'});if(!r.ok)return;const d=await r.json();if(typeof d.telegramUrl==='string'&&/^https:\/\/(?:www\.)?t\.me\/[A-Za-z0-9_+\/-]+/i.test(d.telegramUrl)){const a=document.getElementById('cfTelegramLink');if(a)a.href=d.telegramUrl}const prices=d.shopPrices||{};document.querySelectorAll('.donate-pack').forEach(b=>{const coins=b.dataset.coins,price=prices[coins];if(!Number.isInteger(Number(price))||Number(price)<0)return;b.dataset.rubles=String(Number(price));const p=b.querySelector('b');if(p)p.textContent=Number(price)+' ₽';b.setAttribute('aria-label',coins+' монет за '+Number(price)+' рублей')})}catch{}}if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',apply,{once:true});else apply()})();
+</script>
 </body></html>
