@@ -604,9 +604,10 @@ const fF=(i,j)=>{if(j<3||(j===3&&hs(i,j,9)>.4)||(j===4&&(i<2||i>13)))return hair
  if(j===9&&(i===3||i===12))return K([240,150,140]);
  return skin(i,j)};
 const fS=(i,j)=>(j<4||(j<7&&i>10))?hair(i,j):(j>=6&&j<=8&&i>=6&&i<=9)?skin(i,j,.85):skin(i,j);
-const shT=(i,j)=>{let k=.85+hs(i,j,91)*.2;if(j<2)return K([30,100,180],.8*k);if(i===7||i===8)k*=.9;if(j>13)k*=.75;return K([30,136,229],k)};
-const armT=(i,j)=>j<6?K([30,136,229],(.85+hs(i,j,92)*.2)*(j===5?.8:1)):skin(i,j,j>13?.9:1);
-const legT=(i,j)=>j>=12?K([60,60,66],.75+hs(i,j,93)*.35):j===0?K([30,30,60]):K([40,52,150],.8+fb(i,j,94)*.5);
+// Костюм игрока: графитовая футболка, открытые руки и тёмные штаны в пиксельном стиле.
+const shT=(i,j)=>{let k=.82+hs(i,j,91)*.22;let c=[35,37,43];if(j<2)c=[49,51,59];if(j>13)c=[24,25,31];if(i===0||i===15)c=[27,28,34];if(hs(i,j,92)<.08)c=[44,46,53];return K(c,k)};
+const armT=(i,j)=>{if(j<6){let c=j<2?[48,49,57]:[35,37,43];if((i<2||i>13)&&j>3)c=[27,28,34];return K(c,(.84+hs(i,j,93)*.2)*(j===5?.84:1))}return skin(i,j,j>13?.9:1)};
+const legT=(i,j)=>{if(j>=13)return K([83,82,82],.72+hs(i,j,94)*.28);if(j===12)return K([35,35,40],.75+hs(i,j,95)*.25);let c=[39,41,49];if(i===0||i===15)c=[27,29,36];if(i===7||i===8)c=[32,34,41];return K(c,.78+fb(i,j,96)*.28)};
 const bladeT=(c)=>(i,j)=>{const e=Math.min(i,j,15-i,15-j);return K(c,.85+(e<2?-.12:e>5?.12:0)+hs(i,j,7)*.08)};
 const SY=(a,s)=>{const r=Array(16).fill('');a.forEach((t,k)=>r[s+k]=t);return r};
 const BOLT=SY(['........XXXX....','.......XXXX.....','......XXXX......','.....XXXXXXX....','....XXXXXXX.....','........XXX.....','.......XXX......','......XXX.......','.....XX.........','....X...........'],3);
@@ -2911,8 +2912,10 @@ function mkAvatar(name,rc){
  // ноги качаются от бедра, корпус и голова — от пояса и шеи
  const L1=bx(.28,.7,.28,EM('leg'),-.17,.7,0,g),L2=bx(.28,.7,.28,EM('leg'),.17,.7,0,g);L1.geometry.translate(0,-.35,0);L2.geometry.translate(0,-.35,0);
  const T=new THREE.Group();T.position.set(0,.7,0);T.rotation.order='YXZ';g.add(T);
- bx(.6,.75,.3,EM('shirt'),0,.375,0,T);
- const HG=new THREE.Group();HG.position.set(0,.75,0);HG.rotation.order='YXZ';T.add(HG);bx(.5,.5,.5,['fS','fS','fT','fD','fF','fB'].map(EM),0,.25,0,HG);
+ bx(.62,.75,.32,EM('shirt'),0,.375,0,T);
+ // Небольшая шея соединяет футболку и кубическую голову, как на референсе.
+ bx(.15,.14,.15,EM('skinF'),0,.78,0,T);
+ const HG=new THREE.Group();HG.position.set(0,.75,0);HG.rotation.order='YXZ';T.add(HG);bx(.52,.52,.52,['fS','fS','fT','fD','fF','fB'].map(EM),0,.26,0,HG);
  const A1=bx(.22,.7,.22,EM('arm'),-.42,.72,0,T),A2=bx(.22,.7,.22,EM('arm'),.42,.72,0,T);A1.geometry.translate(0,-.35,0);A2.geometry.translate(0,-.35,0);
  const c=document.createElement('canvas');c.width=256;c.height=56;const x=c.getContext('2d');
  x.fillStyle='rgba(0,0,0,.55)';x.fillRect(0,6,256,44);x.font='bold 26px system-ui,Arial,sans-serif';x.textAlign='center';x.textBaseline='middle';
