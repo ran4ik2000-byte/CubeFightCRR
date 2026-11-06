@@ -5435,4 +5435,61 @@ body:not(.cf-multiplayer-chat) #sysChat,body:not(.cf-multiplayer-chat) #cfChatFe
   syncChatMode();setInterval(syncChatMode,200);
 })();
 </script>
+
+<style id="cf-followup-layout-fixes">
+/* Re-style account logout as a game block rather than a flat warning button. */
+#menu #mSet .cf-settings-account #bAccountLogout{
+  min-height:52px!important;padding:10px 14px!important;
+  background:var(--tex-redstone,#a82a22) 0 0/64px 64px!important;
+  border:3px solid #050605!important;
+  box-shadow:inset 3px 3px 0 #ffffff44,inset -3px -3px 0 #0009,0 3px 0 #000!important;
+  image-rendering:pixelated;color:#fff!important;
+  font:700 13px/1.4 system-ui,'Segoe UI',Arial,sans-serif!important;
+  text-shadow:2px 2px 0 #000c!important;
+}
+#menu #mSet .cf-settings-heading p{display:none!important}
+/* The phone-only controls tab is not shown in the PC settings navigation. */
+body:not(.mob) #menu #mSet .cf-settings-tabs{grid-template-columns:repeat(4,minmax(0,1fr))!important}
+body:not(.mob) #menu #mSet .cf-settings-tab:last-child,
+body:not(.mob) #menu #mSet #cfPhoneSettingsSection4{display:none!important}
+/* A real two-column home layout: the menu and leaderboard never overlap. */
+@media(min-width:761px){
+ #cfHomeLayout{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);width:min(1180px,calc(100vw - 32px));height:min(90dvh,780px);display:flex;align-items:center;justify-content:center;gap:24px;pointer-events:none;z-index:7}
+ #menu #cfHomeLayout>#mMain{position:relative!important;inset:auto!important;left:auto!important;top:auto!important;transform:none!important;box-sizing:border-box!important;flex:0 1 min(760px,calc(100vw - 430px));width:min(760px,calc(100vw - 430px))!important;max-width:none!important;max-height:100%!important;overflow:auto!important;pointer-events:auto;}
+ #menu #cfHomeLayout>#cfLeaderboard{position:relative!important;inset:auto!important;left:auto!important;top:auto!important;right:auto!important;bottom:auto!important;transform:none!important;box-sizing:border-box!important;flex:0 1 min(390px,calc(100vw - 430px));width:min(390px,calc(100vw - 430px))!important;min-width:0!important;max-height:100%!important;pointer-events:auto;}
+}
+/* Keep the settings content scrollable above a compact, stable bottom action. */
+body.mob #menu #mSet{position:fixed!important;left:50%!important;top:50%!important;transform:translate(-50%,-50%)!important;box-sizing:border-box!important;width:min(920px,calc(100vw - 12px))!important;max-width:min(920px,calc(100vw - 12px))!important;height:calc(100dvh - 12px - env(safe-area-inset-top,0px) - env(safe-area-inset-bottom,0px))!important;max-height:none!important;min-height:0!important;flex-direction:column!important;overflow:hidden!important;gap:7px!important;padding:9px!important}
+ body.mob #menu #mSet .cf-settings-heading{flex:0 0 auto!important;padding-bottom:4px!important}
+ body.mob #menu #mSet .cf-settings-tabs{flex:0 0 auto!important}
+ body.mob #menu #mSet .cf-settings-grid{flex:1 1 0!important;min-height:0!important;padding-bottom:72px!important;overflow-x:hidden!important;overflow-y:auto!important;overscroll-behavior:contain!important;-webkit-overflow-scrolling:touch!important}
+ body.mob #menu #mSet .cf-settings-actions{position:absolute!important;left:0!important;right:0!important;bottom:0!important;inset:auto 0 0!important;z-index:10!important;display:block!important;flex:0 0 auto!important;margin:0!important;padding:7px 9px calc(7px + env(safe-area-inset-bottom,0px))!important;background:linear-gradient(180deg,#111811f5,#0a100afc)!important;border-top:1px solid #6f8e5a!important;box-shadow:0 -5px 16px #0009!important}
+ body.mob #menu #mSet .cf-settings-actions #bBack{display:block!important;width:100%!important;min-height:48px!important;padding:8px 12px!important;font-size:13px!important}
+ body.mob #menu #mInv,body.mob #menu #mCase{transform:none!important;max-height:calc(100dvh - 12px - env(safe-area-inset-top,0px) - env(safe-area-inset-bottom,0px))!important;padding-bottom:78px!important}
+ body.mob #menu #mInv>#bBackI,body.mob #menu #mCase>#bBack2{position:fixed!important;left:50%!important;right:auto!important;top:auto!important;bottom:calc(9px + env(safe-area-inset-bottom,0px))!important;z-index:50!important;transform:translateX(-50%)!important;width:min(720px,calc(100vw - 32px))!important;max-width:none!important;min-height:50px!important;margin:0!important;padding:10px 14px!important;background:var(--tex-stone,#7f7a87) 0 0/64px 64px!important;border:3px solid #050605!important;box-shadow:inset 3px 3px 0 #ffffff44,inset -3px -3px 0 #0009,0 3px 0 #000!important;text-shadow:2px 2px 0 #000c!important;color:#fff!important}
+</style>
+<script id="cf-desktop-home-layout">
+(()=>{
+ const menu=document.getElementById('menu'),main=document.getElementById('mMain'),board=document.getElementById('cfLeaderboard');
+ if(!menu||!main||!board)return;
+ const layout=document.createElement('div');layout.id='cfHomeLayout';menu.appendChild(layout);
+ const isDesktop=()=>!document.body.classList.contains('mob')&&innerWidth>=761;
+ function update(){layout.style.display=isDesktop()&&menu.style.display!=='none'&&main.style.display!=='none'?'flex':'none'}
+ function arrange(){
+  if(isDesktop()){
+   if(main.parentNode!==layout)layout.appendChild(main);
+   if(board.parentNode!==layout)layout.appendChild(board);
+  }else{
+   if(main.parentNode===layout)menu.appendChild(main);
+   if(board.parentNode===layout)menu.appendChild(board);
+   layout.style.display='none';
+  }
+  update();
+ }
+ const observer=new MutationObserver(arrange);observer.observe(document.body,{attributes:true,attributeFilter:['class']});
+ observer.observe(menu,{attributes:true,attributeFilter:['style']});observer.observe(main,{attributes:true,attributeFilter:['style']});
+ window.addEventListener('resize',arrange,{passive:true});arrange();
+})();
+</script>
+
 </body></html>
