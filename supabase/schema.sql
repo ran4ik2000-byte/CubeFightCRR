@@ -9,10 +9,14 @@ create table if not exists public.cf_player_profiles (
   user_id uuid primary key references auth.users(id) on delete cascade,
   friend_code text not null unique check (friend_code ~ '^[A-HJ-NP-Z2-9]{8}$'),
   display_name text not null default '',
+  display_name_changed_at timestamptz,
   save_data jsonb not null default '{}'::jsonb,
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now()
 );
+
+alter table public.cf_player_profiles
+  add column if not exists display_name_changed_at timestamptz;
 
 -- Keep nicknames case-insensitively unique; preserve the oldest name if old rows collide.
 with ranked_names as (
@@ -148,6 +152,39 @@ as $$
   order by display_name,p.friend_code;
 $$;
 
+create or replace function public.cf_change_display_name(p_new_name text)
+returns jsonb
+language plpgsql
+volatile
+security definer
+set search_path = public, pg_temp
+as $$
+declare
+  v_user uuid := auth.uid();
+  v_profile public.cf_player_profiles%rowtype;
+  v_new_name text := btrim(coalesce(p_new_name,''));
+  v_next_change timestamptz;
+begin
+  if v_user is null then raise exception 'AUTH_REQUIRED'; end if;
+  if v_new_name !~ '^[[:alnum:]_-]{3,8}$' then raise exception 'NICKNAME_INVALID'; end if;
+  select * into v_profile from public.cf_player_profiles where user_id=v_user for update;
+  if not found then raise exception 'PROFILE_NOT_FOUND'; end if;
+  if lower(v_profile.display_name)=lower(v_new_name) then raise exception 'NICKNAME_UNCHANGED'; end if;
+  if v_profile.display_name_changed_at is not null then
+    v_next_change := v_profile.display_name_changed_at + interval '3 days';
+    if now() < v_next_change then raise exception 'NICKNAME_COOLDOWN'; end if;
+  end if;
+  begin
+    update public.cf_player_profiles
+       set display_name=v_new_name, display_name_changed_at=now(), updated_at=now()
+     where user_id=v_user;
+  exception when unique_violation then
+    raise exception 'NICKNAME_TAKEN' using errcode='23505';
+  end;
+  return jsonb_build_object('display_name',v_new_name,'next_change_at',now()+interval '3 days');
+end;
+$$;
+
 create or replace function public.cf_leaderboard()
 returns table(rank bigint,nickname text,waves integer,coins integer,play_time_seconds bigint)
 language sql
@@ -224,9 +261,11 @@ revoke all on function public.cf_require_gmail() from public,anon,authenticated;
 revoke all on function public.cf_create_profile_for_user() from public,anon,authenticated;
 revoke all on function public.cf_list_friends() from public,anon;
 revoke all on function public.cf_leaderboard() from public,anon;
+revoke all on function public.cf_change_display_name(text) from public,anon;
 revoke all on function public.cf_add_friend_by_code(text) from public,anon;
 revoke all on function public.cf_remove_friend_by_code(text) from public,anon;
 grant execute on function public.cf_list_friends() to authenticated;
 grant execute on function public.cf_leaderboard() to authenticated;
+grant execute on function public.cf_change_display_name(text) to authenticated;
 grant execute on function public.cf_add_friend_by_code(text) to authenticated;
 grant execute on function public.cf_remove_friend_by_code(text) to authenticated;

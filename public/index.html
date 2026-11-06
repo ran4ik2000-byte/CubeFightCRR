@@ -392,19 +392,37 @@ body.creative #hp,body.creative #stw,body.creative #hh,body.creative #stL,body.c
   <div id="mpPl"></div><div id="mpLMsg" class="mpm"></div>
   <button id="bMpStart">Начать игру</button>
   <button id="bMpLeave">Выйти из комнаты</button></div>
- <div class="panel" id="mSet" style="display:none"><h1>Настройки</h1>
-  <label id="phoneMenuScaleWrap"><span>Размер окон на телефоне: <b id="vMenuScale"></b></span><input type="range" id="sMenuScale" min="65" max="100" step="5" value="85" aria-label="Размер всех окон на телефоне"></label>
-  <label><span>Чувствительность мыши: <b id="vSens"></b></span><input type="range" id="sSens" min="0.3" max="3" step="0.1" value="1"></label>
-  <label><span>Угол обзора (FOV): <b id="vFov"></b></span><input type="range" id="sFov" min="60" max="100" step="1" value="75"></label>
-  <label><span>Общая громкость: <b id="vVol"></b></span><input type="range" id="sVol" min="0" max="1" step="0.05" value="0.5"></label>
-  <label><span>Музыка: <b id="vMus"></b></span><input type="range" id="sMus" min="0" max="1" step="0.05" value="1"></label>
-  <label><span>Звуковые эффекты: <b id="vSfx"></b></span><input type="range" id="sSfx" min="0" max="1" step="0.05" value="1"></label>
-  <label><span>Графика: <b id="vGfx"></b></span><input type="range" id="sGfx" min="0" max="3" step="1" value="0"></label>
-  <label><span>Прорисовка чанков: <b id="vRd"></b></span><input type="range" id="sRd" min="0" max="12" step="1" value="0"></label>
-  <small id="gfxHint" style="opacity:.75;font-size:11px;line-height:1.4"></small>
-  <button id="bLang">🌐 Язык: Русский</button>
-  <button id="bFps"></button>
-  <button id="bBack">Назад</button></div>
+ <div class="panel" id="mSet" style="display:none" aria-labelledby="cfSettingsTitle">
+  <header class="cf-settings-heading"><div><span class="cf-settings-kicker">ПРОФИЛЬ · ИГРА · УПРАВЛЕНИЕ</span><h1 id="cfSettingsTitle">Настройки</h1></div><p>Настрой CUBEFIGHT под себя</p></header>
+  <div class="cf-settings-grid">
+   <section class="cf-settings-section"><h2>Игровой процесс</h2>
+    <label><span>Чувствительность мыши <b id="vSens"></b></span><input type="range" id="sSens" min="0.3" max="3" step="0.1" value="1" aria-label="Чувствительность мыши"></label>
+    <label><span>Угол обзора <b id="vFov"></b></span><input type="range" id="sFov" min="60" max="100" step="1" value="75" aria-label="Угол обзора"></label>
+    <label id="phoneMenuScaleWrap"><span>Размер окон на телефоне <b id="vMenuScale"></b></span><input type="range" id="sMenuScale" min="65" max="100" step="5" value="85" aria-label="Размер окон на телефоне"></label>
+   </section>
+   <section class="cf-settings-section"><h2>Производительность</h2>
+    <label for="sFpsLimit"><span>Максимальная частота кадров</span><select id="sFpsLimit" aria-label="Максимальная частота кадров"><option value="120">До 120 FPS</option><option value="60">До 60 FPS</option><option value="0">Без ограничения</option></select></label>
+    <div id="cfFpsSettings" role="status" aria-live="polite"><span><b id="cfFpsValue">—</b> FPS</span><small id="cfFrameTime">Время кадра: —</small></div>
+    <p class="cf-settings-note">120 FPS — верхний лимит. Фактическая частота зависит от экрана, браузера и мощности устройства.</p>
+    <label><span>Качество графики <b id="vGfx"></b></span><input type="range" id="sGfx" min="0" max="3" step="1" value="0" aria-label="Качество графики"></label>
+    <label><span>Дальность прорисовки <b id="vRd"></b></span><input type="range" id="sRd" min="0" max="12" step="1" value="0" aria-label="Дальность прорисовки"></label>
+    <small id="gfxHint"></small>
+   </section>
+   <section class="cf-settings-section"><h2>Звук</h2>
+    <label><span>Общая громкость <b id="vVol"></b></span><input type="range" id="sVol" min="0" max="1" step="0.05" value="0.5" aria-label="Общая громкость"></label>
+    <label><span>Музыка <b id="vMus"></b></span><input type="range" id="sMus" min="0" max="1" step="0.05" value="1" aria-label="Громкость музыки"></label>
+    <label><span>Звуковые эффекты <b id="vSfx"></b></span><input type="range" id="sSfx" min="0" max="1" step="0.05" value="1" aria-label="Громкость звуковых эффектов"></label>
+   </section>
+   <section class="cf-settings-section cf-settings-account"><h2>Аккаунт</h2>
+    <div class="cf-current-nick">Текущий ник <b id="cfCurrentNickname">—</b></div>
+    <label for="cfNicknameChange">Новый ник <small>3–8 букв, цифр, _ или -</small><input id="cfNicknameChange" type="text" minlength="3" maxlength="8" autocomplete="nickname" pattern="[A-Za-zА-Яа-яЁё0-9_-]{3,8}" placeholder="Например, Player7"></label>
+    <button id="cfChangeNickname" type="button">Сменить ник</button>
+    <p id="cfNicknameStatus" role="status" aria-live="polite"></p>
+    <p class="cf-settings-note">Следующая смена ника доступна через 3 дня.</p>
+   </section>
+  </div>
+  <footer class="cf-settings-actions"><button id="bLang">🌐 Язык: Русский</button><button id="bFps" type="button" aria-pressed="true"></button><button id="bBack">Назад в меню</button></footer>
+ </div>
  <div class="panel" id="mQ" style="display:none"><h1>МЕНЮ</h1><button id="bQCase">Кейсы</button><button id="bQInv">Инвентарь</button><div style="opacity:.6;font-size:8px;text-align:center">E — закрыть и вернуться в игру</div></div>
  <div class="panel" id="mInv" style="display:none"><h1>ИНВЕНТАРЬ</h1><div id="iBal"></div><div id="iEq"></div><div id="iBar"><div id="iTabs"><button data-t="all" class="on">Все</button><button data-t="w">Мечи</button><button data-t="a">Броня</button><button data-t="f">Еда</button></div><button id="iSort"></button><button id="iDir">▼</button><button data-act="bdup" id="iDup"></button><button id="iMulti">☑ Выбрать для продажи</button></div><div id="iMBar"><button id="iAll">✔ Выделить все</button><button id="iNone">✖ Снять выделение</button><button id="iSellSel" disabled>💰 Продать выбранные</button><small>Клик по предмету — оставить / продать. Надетые, стартовые и еда не продаются.</small></div><div id="iMain"><div id="iGrid"></div><div id="iDet"></div></div><div style="opacity:.6;font-size:8px">Клик — выбрать · двойной клик — надеть · E — открыть инвентарь в игре</div><button id="bBackI">Назад</button></div>
  <div class="panel" id="mCase" style="display:none"><h1>КЕЙСЫ</h1><div id="cBal"></div>
@@ -442,7 +460,7 @@ const NET={on:false,role:'',live:false,ready:false,room:false,started:false,mul:
 const NETG=()=>NET.on&&NET.role==='guest';
 let FT=null;
 addEventListener('error',e=>{let d=document.getElementById('err');if(!d){d=document.createElement('div');d.id='err';d.style.cssText='position:fixed;left:8px;bottom:8px;z-index:99;max-width:90vw;padding:6px 10px;background:#900;color:#fff;font:12px monospace';document.body.appendChild(d)}d.textContent='Ошибка: '+e.message+' (строка '+e.lineno+':'+(e.colno||0)+') '+String(e.filename||'').split('/').pop().slice(0,40)});
-const S={sens:1,fov:75,vol:.5,master:.5,mus:1,sfx:1,gfx:0,fps:0,rd:0,menuScale:85};
+const S={sens:1,fov:75,vol:.5,master:.5,mus:1,sfx:1,gfx:0,fps:1,fpsLimit:120,rd:0,menuScale:85};
 const W=360, hm=new Int16Array(W*W);
 const RING=18, MG=RING+6, AF=W*W/57600; // RING — ширина горной стены, MG — отступ игровой зоны от подножия гор, AF — во сколько раз карта больше прежней
 const CX=W/2|0, CZ=W/2|0;            // центр карты и точка старта
@@ -1876,9 +1894,9 @@ $('bSet').onclick=()=>showMenu('mSet');
 $('bLang').onclick=()=>{lang=lang==='ru'?'en':'ru';try{localStorage.setItem('cf_lang',lang)}catch(e){}applyLanguage()};
 $('bBack').onclick=()=>showMenu('mMain');
 $('bExit').onclick=()=>{state='exit';document.exitPointerLock();$('ttl').textContent='Игра закрыта';$('bStart').textContent='Запустить снова';try{window.close()}catch(e){}};
-try{const d=JSON.parse(localStorage.getItem('cf_set')||'{}');['sens','fov','master','mus','sfx','gfx','fps','rd','menuScale'].forEach(k=>{if(typeof d[k]==='number'&&isFinite(d[k]))S[k]=d[k]})}catch(e){}
+try{const d=JSON.parse(localStorage.getItem('cf_set')||'{}');['sens','fov','master','mus','sfx','gfx','fps','fpsLimit','rd','menuScale'].forEach(k=>{if(typeof d[k]==='number'&&isFinite(d[k]))S[k]=d[k]});if((+d.fpsVersion||0)<2)S.fps=1}catch(e){}
 const applyVol=()=>{S.vol=S.master*S.sfx;if(mg)mg.gain.value=.22*S.master*S.mus};applyVol();
-const saveSet=()=>{try{localStorage.setItem('cf_set',JSON.stringify({sens:S.sens,fov:S.fov,master:S.master,mus:S.mus,sfx:S.sfx,gfx:S.gfx,fps:S.fps,rd:S.rd,menuScale:S.menuScale}))}catch(e){}};
+const saveSet=()=>{try{localStorage.setItem('cf_set',JSON.stringify({sens:S.sens,fov:S.fov,master:S.master,mus:S.mus,sfx:S.sfx,gfx:S.gfx,fps:S.fps,fpsLimit:S.fpsLimit,fpsVersion:2,rd:S.rd,menuScale:S.menuScale}))}catch(e){}};
 [['sMenuScale','menuScale',v=>Math.round(v)+'%'],['sSens','sens',v=>(+v).toFixed(1)],['sFov','fov',v=>Math.round(v)+'°'],['sVol','master',v=>Math.round(v*100)+'%'],['sMus','mus',v=>Math.round(v*100)+'%'],['sSfx','sfx',v=>Math.round(v*100)+'%'],['sGfx','gfx',v=>['Авто','Низкая','Средняя','Высокая'][v|0]],['sRd','rd',v=>{v|=0;if(!v)return 'Авто';if(v>=12)return 'Макс.';const m=v%10,h=v%100;return v+(h>10&&h<15?' чанков':m===1?' чанк':m>=2&&m<=4?' чанка':' чанков')}]].forEach(([id,k,f])=>{
  const el=$(id),lb=$('v'+id.slice(1));el.value=S[k];lb.textContent=f(S[k]);
  el.oninput=e=>{S[k]=+e.target.value;lb.textContent=f(S[k]);applyVol();if(k==='menuScale')fitMenu();saveSet()};
@@ -1894,18 +1912,22 @@ function applyGfx(){
  if(q.sh){if(sun.shadow.mapSize.x!==q.sm){sun.shadow.mapSize.set(q.sm,q.sm);if(sun.shadow.map){sun.shadow.map.dispose();sun.shadow.map=null}}}
  renderer.shadowMap.autoUpdate=true;
  clouds.forEach(c=>c.visible=!!q.cl);
- $('gfxHint').textContent=(S.gfx?'':'Авто подберёт качество по FPS (сейчас: '+q.n+'). ')+'Низкая — без теней, короткая дальность, меньше частиц; сглаживание меняется после перезагрузки страницы. Прорисовка чанков (1 чанк = 32 блока) ограничивает дальность отрисовки земли, травы и деревьев — меньше значение, выше FPS; «Авто» — по качеству графики, а дальше тумана погоды не видно в любом случае.';
+ $('gfxHint').textContent=(S.gfx?'':'Авто выбирает качество по FPS (сейчас: '+q.n+'). ')+'Низкая графика убирает тени. Меньше дальность — выше FPS (1 чанк = 32 блока).';
  $('vGfx').textContent=S.gfx?q.n:'Авто · '+q.n;
  try{if(!S.gfx)localStorage.setItem('cf_autogfx',GL)}catch(e){}}
-function fpsBtn(){$('bFps').textContent='Показ FPS: '+(S.fps?'ВКЛ':'ВЫКЛ');fpsBox.style.display=S.fps?'block':'none';document.body.classList.toggle('fpsOn',!!S.fps)}
-$('bFps').onclick=()=>{S.fps=S.fps?0:1;fpsBtn();saveSet()};
+function syncFpsDisplay(){const inGame=state==='playing';const display=S.fps&&inGame?'block':'none';if(fpsBox.style.display!==display)fpsBox.style.display=display;document.body.classList.toggle('fpsOn',!!S.fps&&inGame)}
+ function fpsBtn(){const b=$('bFps');if(b){b.textContent='FPS в игре: '+(S.fps?'ВКЛ':'ВЫКЛ');b.setAttribute('aria-pressed',String(!!S.fps))}syncFpsDisplay()}
+ $('bFps').onclick=()=>{S.fps=S.fps?0:1;fpsBtn();saveSet()};
+ const fpsLimitSelect=$('sFpsLimit');if(fpsLimitSelect){if(![0,60,120].includes(+S.fpsLimit))S.fpsLimit=120;fpsLimitSelect.value=String(S.fpsLimit);fpsLimitSelect.addEventListener('change',()=>{S.fpsLimit=Number(fpsLimitSelect.value)||0;saveSet()})}
+ const fpsVisibilityObserver=new MutationObserver(syncFpsDisplay);['mSet','menu'].forEach(id=>{const el=$(id);if(el)fpsVisibilityObserver.observe(el,{attributes:true,attributeFilter:['style']})});
 $('sRd').addEventListener('input',()=>{PF.cull=0});
 $('sGfx').addEventListener('input',()=>{PF.slow=0;PF.cool=6;if(!S.gfx)GL=_ga&&_ga<3?_ga:3;applyGfx()});
 function perfTick(t){
  const d=t-PF.last;PF.last=t;if(d>0&&d<400){PF.acc+=d;PF.n++}PF.w+=d>0&&d<400?d:0;
- if(PF.w<500)return;
+ if(PF.w<500){syncFpsDisplay();return;}
  PF.fps=PF.n*1000/PF.acc;PF.ms=PF.acc/PF.n;PF.acc=PF.n=PF.w=0;
- if(S.fps)fpsBox.textContent='FPS '+Math.round(PF.fps)+'  ('+PF.ms.toFixed(1)+' мс)\nГрафика: '+(S.gfx?'':'авто · ')+GQ[GL].n;
+ fpsBox.textContent='FPS '+Math.round(PF.fps)+'  ('+PF.ms.toFixed(1)+' мс)\nГрафика: '+(S.gfx?'':'авто · ')+GQ[GL].n;
+ const fpsValue=$('cfFpsValue'),frameValue=$('cfFrameTime');if(fpsValue)fpsValue.textContent=String(Math.round(PF.fps));if(frameValue)frameValue.textContent='Время кадра: '+PF.ms.toFixed(1)+' мс';syncFpsDisplay();
  if(!S.gfx&&state==='playing'&&!document.hidden){
   PF.cool-=.5;
   if(PF.fps<38){PF.slow+=.5}else PF.slow=Math.max(0,PF.slow-.5);
@@ -2003,10 +2025,10 @@ window.cfHydrateGameMemory=function(){
  WP2=item(d.e2);if(!WP2||isA(WP2)||!own[WP2.id])WP2=null;eq2=WP2?WP2.id:'';
  pearls=Number(d.pl)|0;bombs=Number(d.bm)|0;orbs=Number(d.ob)|0;heals=Number(d.hl)|0;fires=Number(d.rg)|0;scrolls=Number(d.sc)|0;tstops=Number(d.ts)|0;domes=Number(d.dm)|0;
  best=0;try{best=Number(localStorage.getItem('cf_best'))||0}catch(e){}
- const defaults={sens:1,fov:75,master:.5,mus:1,sfx:1,gfx:0,fps:0,rd:0,menuScale:85};Object.assign(S,defaults);
+ const defaults={sens:1,fov:75,master:.5,mus:1,sfx:1,gfx:0,fps:1,fpsLimit:120,rd:0,menuScale:85};Object.assign(S,defaults);
  let prefs={};try{prefs=JSON.parse(localStorage.getItem('cf_set')||'{}')||{}}catch(e){}
- Object.keys(defaults).forEach(k=>{if(typeof prefs[k]==='number'&&isFinite(prefs[k]))S[k]=prefs[k]});
- [['sMenuScale','menuScale'],['sSens','sens'],['sFov','fov'],['sVol','master'],['sMus','mus'],['sSfx','sfx'],['sGfx','gfx'],['sRd','rd']].forEach(([id,k])=>{const el=$(id);if(el){el.value=String(S[k]);el.dispatchEvent(new Event('input',{bubbles:true}))}});
+ Object.keys(defaults).forEach(k=>{if(typeof prefs[k]==='number'&&isFinite(prefs[k]))S[k]=prefs[k]});if((+prefs.fpsVersion||0)<2)S.fps=1;
+ [['sMenuScale','menuScale'],['sSens','sens'],['sFov','fov'],['sVol','master'],['sMus','mus'],['sSfx','sfx'],['sGfx','gfx'],['sRd','rd']].forEach(([id,k])=>{const el=$(id);if(el){el.value=String(S[k]);el.dispatchEvent(new Event('input',{bubbles:true}))}});const fpsCap=$('sFpsLimit');if(fpsCap)fpsCap.value=String(S.fpsLimit);
  lang=localStorage.getItem('cf_lang')==='en'?'en':'ru';try{applyLanguage()}catch(e){}
  try{if(typeof window.cfHydrateControls==='function')window.cfHydrateControls();const mp=$('mpName'),storedName=localStorage.getItem('cf_name');if(mp&&storedName)mp.value=storedName;}catch(e){}
  try{applyGfx();fpsBtn();menuInfo();syncHeld();renderBar();renderInv();if($('mCase').style.display==='flex')renderCase();}catch(e){}
@@ -3390,10 +3412,10 @@ addEventListener('keydown',e=>{if(e.code==='KeyQ'&&!e.repeat&&state==='playing')
 
 // ---------- цикл ----------
 p.y=H(CX,CZ);camera.position.set(CX+.5,p.y+1.6,CZ+.5);
-let last=performance.now();
+let last=performance.now(),lastRender=last,renderAccumulator=0;
 let DEMO=null;{const q=new URLSearchParams(location.search);if(q.has('demo')){const ty=q.get('demo'),it=ITEMS.filter(i=>i.ty===ty).sort((a,b)=>b.dmg-a.dmg)[+q.get('i')||0];if(it){own[it.id]=1;equip(it.id)}
  newGame();en.splice(0).forEach(e=>scene.remove(e.g));state='playing';$('menu').style.display='none';DEMO={u:q.has('u')?+q.get('u'):-1,d:+(q.get('d')||1)};pitch=+(q.get('pitch')||0)}}
-(function loop(t){requestAnimationFrame(loop);perfTick(t);const raw=Math.max(0,Math.min(.05,(t-last)/1000));last=t;
+(function loop(t){requestAnimationFrame(loop);const elapsed=Math.max(0,Math.min(.25,(t-last)/1000));last=t;const limit=Math.max(0,Number(S.fpsLimit)||0);if(limit){renderAccumulator+=elapsed*1000;const interval=1000/limit;if(renderAccumulator<interval)return;renderAccumulator-=interval}const raw=Math.max(0,Math.min(.05,(t-lastRender)/1000));lastRender=t;perfTick(t);
  const dt=hstop>0?raw*.12:raw;if(hstop>0)hstop=Math.max(0,hstop-raw);
  if(DEMO&&DEMO.u>=0){p.swd=.3;p.sw=.3*(1-DEMO.u)+1e-4;p.sd=DEMO.d;p.hs=1;p.hitT=0;wait=99}
  fx(dt);fxLStep(raw);if(curSw&&curSw.userData.glow)curSw.userData.glow.opacity=.26+.12*Math.sin(t/180)+(p.sw>0?.2:0);const active=appFocused&&!document.hidden;
@@ -4341,6 +4363,7 @@ body.mob #menu #mMain{max-height:calc(100dvh - 12px)!important;overflow-y:auto!i
     const {data:profile,error}=await client.from('cf_player_profiles').select('user_id,friend_code,display_name,save_data').eq('user_id',user.id).maybeSingle();
     if(error)throw error;
     if(!profile)throw new Error('Профиль базы не найден. Выполни supabase/schema.sql в Supabase SQL Editor.');
+    window.cfDisplayName=String(profile.display_name||'');if(typeof window.cfUpdateSettingsNickname==='function')window.cfUpdateSettingsNickname(window.cfDisplayName);
     window.cfHydrating=true;
     try{
       let saved=profile.save_data&&typeof profile.save_data==='object'&&!Array.isArray(profile.save_data)?profile.save_data:{};
@@ -4654,6 +4677,19 @@ body.mob #phoneMenuScaleWrap{display:flex;}
 @media(max-height:520px) and (min-width:761px){#cfLeaderboard{max-height:78vh;padding:10px;gap:6px}.cf-leader-row{padding:4px 6px}}
 </style>
 
+
+<style id="cf-settings-redesign-style">
+#menu #mSet{width:min(1000px,calc(100vw - 32px))!important;max-height:calc(100dvh - 32px)!important;box-sizing:border-box;overflow:auto;overscroll-behavior:contain;display:flex;flex-direction:column;gap:14px;padding:clamp(16px,2vw,22px)!important;background:linear-gradient(145deg,#182019f5,#101510f8 60%,#0a0e0bf8)!important;border:2px solid #52734a!important;box-shadow:inset 0 0 0 1px #ffffff16,0 18px 54px #000c!important;color:#f2f6ef!important}
+.cf-settings-heading{display:flex;justify-content:space-between;align-items:flex-end;gap:16px;padding-bottom:14px;border-bottom:1px solid #ffffff20}.cf-settings-kicker{color:#9ad27e;font:700 11px/1.5 system-ui,Arial,sans-serif;letter-spacing:1.6px}.cf-settings-heading h1{margin:5px 0 0!important;color:#f4f6ef!important;font:700 clamp(24px,3vw,32px)/1.2 system-ui,Arial,sans-serif!important;letter-spacing:0;text-shadow:none!important}.cf-settings-heading p{margin:0;color:#bdc7b9;font:14px/1.5 system-ui,Arial,sans-serif}
+.cf-settings-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;align-items:stretch}.cf-settings-section{display:flex;flex-direction:column;gap:10px;min-width:0;padding:12px;background:linear-gradient(145deg,#202a21,#171d18);border:1px solid #ffffff20;box-shadow:inset 0 1px #ffffff0d}.cf-settings-section h2{margin:0;padding-bottom:10px;border-bottom:1px solid #ffffff19;color:#c3f2ac;font:700 16px/1.35 system-ui,Arial,sans-serif;letter-spacing:.2px}
+#menu #mSet .cf-settings-section label{display:flex;flex-direction:column;gap:6px;margin:0;color:#e8eee4;font:14px/1.45 system-ui,Arial,sans-serif}#menu #mSet #phoneMenuScaleWrap{display:none}body.mob #menu #mSet #phoneMenuScaleWrap{display:flex}#menu #mSet label span{display:flex;align-items:center;justify-content:space-between;gap:10px}#menu #mSet label b{color:#ffe18a;font-weight:700;white-space:nowrap}#menu #mSet input[type=range]{width:100%;height:24px;margin:0;accent-color:#8acb70;cursor:pointer}#menu #mSet input[type=range]:focus-visible,#menu #mSet select:focus-visible,#menu #mSet button:focus-visible,#menu #mSet input[type=text]:focus-visible{outline:3px solid #a9df8c;outline-offset:3px}
+#menu #mSet select,#menu #mSet input[type=text]{width:100%;min-height:46px;padding:9px 12px;border:1px solid #60715c;border-radius:4px;background:#0d130e;color:#f6f8f4;font:15px/1.4 system-ui,Arial,sans-serif}#menu #mSet .cf-settings-note{margin:0;color:#b9c4b5;font:14px/1.5 system-ui,Arial,sans-serif}#menu #mSet #gfxHint{color:#aab7a5;font:14px/1.5 system-ui,Arial,sans-serif;opacity:1!important}#cfFpsSettings{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:12px 14px;background:#0b110c;border:1px solid #4f7148;color:#bdf1a0;font:700 16px/1.4 system-ui,Arial,sans-serif}#cfFpsSettings small{color:#b9c4b5;font:14px/1.4 system-ui,Arial,sans-serif}#cfFpsValue{font-size:22px;color:#f4f7ee}
+.cf-settings-account{grid-column:auto;display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);align-content:start;gap:10px}.cf-settings-account h2,.cf-settings-account>.cf-settings-note{grid-column:1/-1}.cf-current-nick{display:flex;justify-content:space-between;align-items:center;gap:12px;min-height:44px;box-sizing:border-box;padding:9px 12px;background:#0d130e;border:1px solid #ffffff1a;color:#c4cec0;font:14px/1.45 system-ui,Arial,sans-serif;white-space:nowrap}.cf-current-nick b{color:#ffe18a;overflow-wrap:anywhere}.cf-settings-account label small{color:#abb6a7;font-size:14px}#menu #mSet #cfChangeNickname{min-height:46px;padding:10px 14px!important;background:linear-gradient(180deg,#518849,#356b32)!important;border:1px solid #7baa6f!important;color:white;font:700 14px/1.4 system-ui,Arial,sans-serif!important}#cfNicknameStatus{min-height:21px;margin:0;color:#c8d4c3;font:14px/1.5 system-ui,Arial,sans-serif;align-self:center}#cfNicknameStatus[data-tone=error]{color:#ffaaa1}#cfNicknameStatus[data-tone=success]{color:#a7f58a}
+.cf-settings-actions{display:flex;flex-wrap:wrap;gap:10px;padding-top:4px}#menu #mSet .cf-settings-actions button{flex:1 1 180px;min-height:48px!important;padding:10px 12px!important;background:#242c25!important;border:1px solid #657360!important;color:#f4f6ef;font:700 14px/1.4 system-ui,Arial,sans-serif!important;box-shadow:none!important;text-shadow:none!important}#menu #mSet .cf-settings-actions #bBack{background:linear-gradient(180deg,#537f48,#345a30)!important;border-color:#719565!important}
+@media(max-width:700px){#menu #mSet{width:calc(100vw - 20px)!important;max-height:calc(100dvh - 20px)!important;gap:12px;padding:14px!important}.cf-settings-heading{align-items:flex-start;flex-direction:column;gap:4px;padding-bottom:10px}.cf-settings-grid{grid-template-columns:1fr;gap:10px}.cf-settings-section{gap:12px;padding:13px}.cf-settings-section h2{font-size:15px}.cf-settings-account{grid-column:auto;display:flex;flex-direction:column;grid-template-columns:1fr}.cf-settings-actions{gap:8px}.cf-settings-actions button{flex:1 1 100%!important;min-height:44px!important}#cfFpsSettings{align-items:flex-start;flex-direction:column;gap:4px}}
+@media(prefers-reduced-motion:reduce){#menu #mSet *,#fpsBox{scroll-behavior:auto!important;transition:none!important;animation:none!important}}
+</style>
+
 <style id="cf-cloud-routes-style">
 #cfFriendStatus{min-height:22px;margin:0;color:#dcebd7;font:14px/1.45 system-ui,Arial,sans-serif;overflow-wrap:anywhere}
 #cfFriendStatus[data-tone="error"]{color:#ffaaa1}#cfFriendStatus[data-tone="success"]{color:#a7f58a}
@@ -4864,6 +4900,7 @@ body.mob #phoneMenuScaleWrap{display:flex;}
     lastVisible=visible;
   }
   refreshButton.addEventListener('click',()=>loadLeaderboard(true));
+  window.cfRefreshLeaderboard=()=>loadLeaderboard(true);
   if(typeof showMenu==='function'){
     const prior=showMenu;
     showMenu=function(id){const result=prior.apply(this,arguments);setTimeout(updateVisibility,0);return result};
@@ -4897,5 +4934,46 @@ body.mob #phoneMenuScaleWrap{display:flex;}
   },1000);
   document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='hidden')persistTime(true)});
   window.addEventListener('pagehide',()=>persistTime(true));
+})();
+</script>
+
+<script id="cf-settings-account-actions">
+(function(){
+  'use strict';
+  const input=document.getElementById('cfNicknameChange');
+  const button=document.getElementById('cfChangeNickname');
+  const status=document.getElementById('cfNicknameStatus');
+  const current=document.getElementById('cfCurrentNickname');
+  if(!input||!button||!status||!current)return;
+  const setStatus=(text,tone)=>{status.textContent=text||'';status.dataset.tone=tone||''};
+  window.cfUpdateSettingsNickname=name=>{current.textContent=String(name||'—')};
+  window.cfUpdateSettingsNickname(window.cfDisplayName||'');
+  button.addEventListener('click',async()=>{
+    const nickname=input.value.trim();
+    if(!/^[A-Za-zА-Яа-яЁё0-9_-]{3,8}$/.test(nickname)){setStatus('Укажи ник из 3–8 букв, цифр, _ или -.','error');input.focus();return;}
+    if(!window.cfCloudReady||typeof window.cfSupabaseClient!=='function'){setStatus('Сначала войди в аккаунт.','error');return;}
+    button.disabled=true;setStatus('Сохраняю ник…','');
+    try{
+      const client=await window.cfSupabaseClient();
+      const {data,error}=await client.rpc('cf_change_display_name',{p_new_name:nickname});
+      if(error)throw error;
+      const result=Array.isArray(data)?data[0]:data;
+      const saved=String(result&&result.display_name||nickname);
+      window.cfDisplayName=saved;window.cfUpdateSettingsNickname(saved);
+      try{localStorage.setItem('cf_name',saved)}catch(e){}
+      input.value='';
+      const next=result&&result.next_change_at?new Date(result.next_change_at):null;
+      const when=next&&!Number.isNaN(next.getTime())?next.toLocaleString('ru-RU',{dateStyle:'short',timeStyle:'short'}):'через 3 дня';
+      setStatus('Ник изменён. Следующая смена доступна после '+when+'.','success');
+      if(typeof window.cfRefreshLeaderboard==='function')window.cfRefreshLeaderboard();
+    }catch(error){
+      const message=String(error&&error.message||'');
+      if(message.toUpperCase().includes('NICKNAME_COOLDOWN'))setStatus('Менять ник можно только раз в 3 дня. Подожди перед следующей сменой.','error');
+      else if(message.toUpperCase().includes('NICKNAME_TAKEN')||message.toLowerCase().includes('display_name_ci_uidx'))setStatus('Этот ник уже занят. Выбери другой.','error');
+      else if(message.toUpperCase().includes('NICKNAME_UNCHANGED'))setStatus('Это уже твой текущий ник.','error');
+      else setStatus(message||'Не удалось сменить ник. Проверь подключение и обновлённую базу.','error');
+    }finally{button.disabled=false;}
+  });
+  input.addEventListener('input',()=>{if(status.textContent)setStatus('')});
 })();
 </script>
