@@ -400,6 +400,13 @@ body.cf-chat-open #cfChatFeed{visibility:hidden}
   </div>
   <div id="donateSelection" class="donate-selection" role="status" aria-live="polite">Сначала выберите сумму.</div>
   <button id="bDonatePay" type="button" disabled>Перейти к оплате</button>
+  <!-- Блок с юридическими ссылками под кнопкой оплаты -->
+<div class="donate-legal-links">
+  Подтверждая покупку, вы соглашаетесь с условиями: 
+  <a href="https://telegra.ph/Politika-konfidencialnosti-11-06-178" target="_blank" rel="noopener noreferrer">Политика конфиденциальности</a> 
+  и 
+  <a href="https://telegra.ph/Polzovatelskoe-soglashenie-11-06-85" target="_blank" rel="noopener noreferrer">Пользовательское соглашение</a>.
+</div>
   <div id="donateStatus" class="donate-status" role="status" aria-live="polite">Оплата не подключена — покупка и начисление недоступны.</div>
   <button id="bDonateBack" type="button">← Назад</button>
  </div>
@@ -420,7 +427,7 @@ body.cf-chat-open #cfChatFeed{visibility:hidden}
   <button id="bMpStart">Начать игру</button>
   <button id="bMpLeave">Выйти из комнаты</button></div>
  <div class="panel" id="mSet" style="display:none" aria-labelledby="cfSettingsTitle">
-  <header class="cf-settings-heading"><div><span class="cf-settings-kicker">ПРОФИЛЬ · ИГРА · УПРАВЛЕНИЕ</span><h1 id="cfSettingsTitle">Настройки</h1></div><p>Настрой CUBEFIGHT под себя</p></header>
+  <header class="cf-settings-heading"><div><span class="cf-settings-kicker"></span><h1 id="cfSettingsTitle">Настройки</h1></div><p>Настрой CUBEFIGHT под себя</p></header>
   <div class="cf-settings-grid">
    <section class="cf-settings-section"><h2>Игровой процесс</h2>
     <label><span>Чувствительность мыши <b id="vSens"></b></span><input type="range" id="sSens" data-default="1" min="0.3" max="3" step="0.1" value="1" aria-label="Чувствительность мыши"></label>
