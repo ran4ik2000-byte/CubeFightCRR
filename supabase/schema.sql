@@ -14,6 +14,17 @@ create table if not exists public.cf_player_profiles (
   updated_at timestamptz not null default now()
 );
 
+-- Keep nicknames case-insensitively unique; preserve the oldest name if old rows collide.
+with ranked_names as (
+  select user_id, row_number() over (partition by lower(display_name) order by created_at, user_id) as rn
+  from public.cf_player_profiles
+  where display_name <> ''
+)
+update public.cf_player_profiles p set display_name=''
+from ranked_names r where p.user_id=r.user_id and r.rn>1;
+create unique index if not exists cf_player_profiles_display_name_ci_uidx
+  on public.cf_player_profiles (lower(display_name)) where display_name <> '';
+
 create table if not exists public.cf_friendships (
   user_id uuid not null references public.cf_player_profiles(user_id) on delete cascade,
   friend_id uuid not null references public.cf_player_profiles(user_id) on delete cascade,
@@ -78,9 +89,14 @@ language plpgsql
 security definer
 set search_path = public, pg_temp
 as $$
+declare
+  v_display_name text := btrim(coalesce(new.raw_user_meta_data->>'display_name',''));
 begin
-  insert into public.cf_player_profiles(user_id,friend_code)
-  values(new.id,public.cf_generate_friend_code())
+  if v_display_name !~ '^[[:alnum:]_-]{3,8}$' then
+    raise exception 'NICKNAME_INVALID: use 3-8 letters, digits, _ or -.' using errcode='23514';
+  end if;
+  insert into public.cf_player_profiles(user_id,friend_code,display_name)
+  values(new.id,public.cf_generate_friend_code(),v_display_name)
   on conflict(user_id) do nothing;
   return new;
 end;
@@ -113,7 +129,7 @@ for update to authenticated using (user_id=auth.uid()) with check (user_id=auth.
 
 -- Clients can read their own profile and update only the save JSON, never the code or owner ID.
 revoke all on public.cf_player_profiles from anon, authenticated;
-grant select(user_id,friend_code,save_data) on public.cf_player_profiles to authenticated;
+grant select(user_id,friend_code,display_name,save_data) on public.cf_player_profiles to authenticated;
 grant update(save_data) on public.cf_player_profiles to authenticated;
 revoke all on public.cf_friendships from anon, authenticated;
 
@@ -130,6 +146,28 @@ as $$
   join public.cf_player_profiles p on p.user_id=f.friend_id
   where f.user_id=auth.uid()
   order by display_name,p.friend_code;
+$$;
+
+create or replace function public.cf_leaderboard()
+returns table(rank bigint,nickname text,waves integer,coins integer,play_time_seconds bigint)
+language sql
+stable
+security definer
+set search_path = public, pg_temp
+as $$
+  select row_number() over (
+           order by scores.waves desc, scores.coins desc, scores.play_time_seconds desc,
+                    scores.nickname asc, scores.user_id asc
+         ) as rank,
+         scores.nickname, scores.waves, scores.coins, scores.play_time_seconds
+  from (
+    select p.user_id,
+           coalesce(nullif(p.display_name,''),'P'||left(p.friend_code,7)) as nickname,
+           case when p.save_data->>'cf_best' ~ '^[0-9]{1,9}$' then (p.save_data->>'cf_best')::integer else 0 end as waves,
+           case when p.save_data->'cf'->>'coins' ~ '^[0-9]{1,9}$' then (p.save_data->'cf'->>'coins')::integer else 0 end as coins,
+           case when p.save_data->>'cf_playtime_seconds' ~ '^[0-9]{1,12}$' then (p.save_data->>'cf_playtime_seconds')::bigint else 0 end as play_time_seconds
+    from public.cf_player_profiles p
+  ) scores;
 $$;
 
 create or replace function public.cf_add_friend_by_code(p_friend_code text)
@@ -185,8 +223,10 @@ revoke all on function public.cf_generate_friend_code() from public,anon,authent
 revoke all on function public.cf_require_gmail() from public,anon,authenticated;
 revoke all on function public.cf_create_profile_for_user() from public,anon,authenticated;
 revoke all on function public.cf_list_friends() from public,anon;
+revoke all on function public.cf_leaderboard() from public,anon;
 revoke all on function public.cf_add_friend_by_code(text) from public,anon;
 revoke all on function public.cf_remove_friend_by_code(text) from public,anon;
 grant execute on function public.cf_list_friends() to authenticated;
+grant execute on function public.cf_leaderboard() to authenticated;
 grant execute on function public.cf_add_friend_by_code(text) to authenticated;
 grant execute on function public.cf_remove_friend_by_code(text) to authenticated;
