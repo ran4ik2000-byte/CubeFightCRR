@@ -2938,17 +2938,17 @@ function heldResolve(c){const k=c.slice(0,2),id=c.slice(2);
  if(k==='u:')return UTO[id]||null;return null}
 function setAvHeld(av,code){
  av.held=code;
- if(av.ho){av.A2.remove(av.ho);av.ho.traverse(o=>{if(o.geometry)o.geometry.dispose();if(o.material&&o.material.dispose)o.material.dispose()});av.ho=null}
+ if(av.ho){av.A1.remove(av.ho);av.ho.traverse(o=>{if(o.geometry)o.geometry.dispose();if(o.material&&o.material.dispose)o.material.dispose()});av.ho=null}
  if(!code)return;const it=heldResolve(code);if(!it)return;
  let o;
  if(code[0]==='w'){
   if(it.gun){o=new THREE.Group();const m=new THREE.Mesh(new THREE.BoxGeometry(.08,.1,.5),new THREE.MeshLambertMaterial({color:0xffc400,emissive:0x553300}));m.position.z=.25;o.add(m)}
   else{o=new THREE.Group();const s=buildSword(it);s.rotation.y=Math.PI;o.add(s)}
-  o.position.set(0,-.64,.04)}
+  o.position.set(0,-.64,.26)}
  else{
-  o=new THREE.Group();{const m3=cfItem3D(it).clone();m3.scale.setScalar(.4);o.add(m3)}o.position.set(0,-.64,.22)}
+  o=new THREE.Group();{const m3=cfItem3D(it).clone();m3.scale.setScalar(.4);o.add(m3)}o.position.set(0,-.64,.30)}
  o.traverse(q=>{if(q.isMesh)q.castShadow=true});
- av.A2.add(o);av.ho=o}
+ av.A1.add(o);av.ho=o}
 function avStep(av,dt){
  dt=Math.max(dt,.001);const k=Math.min(1,dt*12),lp=(a,b,t)=>a+(b-a)*t,ez=t=>t*t*(3-2*t);let tp=0;
  if(av.fresh){av.x=av.tx;av.y=av.ty;av.z=av.tz;av.ry=av.tr;av.fresh=0}
@@ -2964,22 +2964,22 @@ function avStep(av,dt){
  if(av.faceMat){if(dn)av.blinkFor=0;else if(av.blinkFor<=0){av.blinkT-=dt;if(av.blinkT<=0){av.blinkFor=.13;av.blinkT=2.2+Math.random()*3.8}}if(av.blinkFor>0)av.blinkFor=Math.max(0,av.blinkFor-dt);const shut=dn||av.blinkFor>0;if(shut!==av.eyeClosed){av.faceMat.map=TX[shut?'fBlink':'fF'];av.faceMat.needsUpdate=true;av.eyeClosed=shut}}
  const M=av.mv,R=av.rb,ph=av.ph,amp=(.6+.5*R)*M,sw=Math.sin(ph)*amp,held=av.held?1:0,ar=av.ar,up=av.vy>0?1:0,idle=Math.sin(av.t*1.4)*.015;
  // --- ходьба / бег ---
- let L1x=sw,L2x=-sw,A1x=-sw*(.85+.2*R)-.3*R*M,A2x=held?-.85+sw*.3-.25*R*M:sw*(.85+.2*R)-.3*R*M,A1z=-.05-idle,A2z=.05+idle,
+ let L1x=sw,L2x=-sw,A1x=held?-.85+sw*.3-.25*R*M:-sw*(.85+.2*R)-.3*R*M,A2x=sw*(.85+.2*R)-.3*R*M,A1z=.05+idle,A2z=-.05-idle,
   Tx=.04*M+.2*R*M+idle,Ty=-Math.sin(ph)*(.14+.1*R)*M,Hy=Math.sin(ph)*(.1+.07*R)*M,bob=Math.abs(Math.sin(ph))*(.035+.05*R)*M;
  // --- прыжок / падение ---
- if(ar>.01){L1x=lp(L1x,up?-.8:-.35,ar);L2x=lp(L2x,up?.4:.35,ar);A1x=lp(A1x,up?-2.3:-1.2,ar);A2x=lp(A2x,held?(up?-1.6:-1.1):(up?-2.3:-1.2),ar);
-  A1z=lp(A1z,-.45,ar);A2z=lp(A2z,.45,ar);Tx=lp(Tx,up?-.06:.12,ar);Ty*=1-ar;Hy*=1-ar;bob*=1-ar}
+ if(ar>.01){L1x=lp(L1x,up?-.8:-.35,ar);L2x=lp(L2x,up?.4:.35,ar);A1x=lp(A1x,held?(up?-1.6:-1.1):(up?-2.3:-1.2),ar);A2x=lp(A2x,up?-2.3:-1.2,ar);
+  A1z=lp(A1z,.45,ar);A2z=lp(A2z,-.45,ar);Tx=lp(Tx,up?-.06:.12,ar);Ty*=1-ar;Hy*=1-ar;bob*=1-ar}
  // --- удар ---
  if(av.sw>0&&!dn){av.sw-=dt;const u=1-Math.max(0,av.sw)/Math.max(.1,av.swd),sd=av.sd>=0?1:-1,base=held?-.85:-.2;let aA,tw,ln,sz;
   if(u<.28){const q=ez(u/.28);aA=lp(base,-2.7,q);tw=-.4*q;ln=-.08*q;sz=sd*.2*q}
   else if(u<.58){const q=ez((u-.28)/.3);aA=lp(-2.7,-.55,q);tw=lp(-.4,.55,q);ln=lp(-.08,.28,q);sz=lp(sd*.2,-sd*.5,q)}
   else{const q=ez((u-.58)/.42);aA=lp(-.55,base,q);tw=lp(.55,0,q);ln=lp(.28,0,q);sz=lp(-sd*.5,0,q)}
-  const lg=Math.sin(Math.min(1,u)*Math.PI);A2x=aA;A2z=.05+sz;Ty+=tw;Tx+=ln;A1x=lp(A1x,.5*ln-.4,.6);L1x+=-.35*lg;L2x+=.35*lg}
+  const lg=Math.sin(Math.min(1,u)*Math.PI);A1x=aA;A1z=.05+sz;Ty+=tw;Tx+=ln;A2x=lp(A2x,.5*ln-.4,.6);L1x+=-.35*lg;L2x+=.35*lg}
  // --- приземление ---
  const lk=av.land>0?av.land/.22:0;if(lk){Tx+=.3*lk;L1x-=.25*lk;L2x+=.25*lk}
  // --- урон: отдача назад и красная вспышка ---
  const hk=av.hurt>0?Math.min(1,av.hurt/.35):0;if(av.hurt>0)av.hurt-=dt;
- if(hk){Tx-=.5*hk;A1z-=.55*hk;A2z+=.55*hk;A1x-=.5*hk;if(!av.sw)A2x-=.5*hk}
+ if(hk){Tx-=.5*hk;A1z+=.55*hk;A2z-=.55*hk;A2x-=.5*hk;if(!av.sw)A1x-=.5*hk}
  if(hk>0||av.hk>0){av.hk=hk;av.mats.forEach(m=>m.emissive.setRGB(.8*hk,.06*hk,.06*hk))}
  // --- применяем позу ---
  av.dl=(av.dl||0)+((dn?1:0)-(av.dl||0))*Math.min(1,dt*7);
@@ -2988,7 +2988,7 @@ function avStep(av,dt){
  av.L1.rotation.x=L1x;av.L2.rotation.x=L2x;av.A1.rotation.x=A1x;av.A2.rotation.x=A2x;av.A1.rotation.z=A1z;av.A2.rotation.z=A2z;
  av.T.rotation.set(Tx,Ty,0);av.HG.rotation.set(dn?0:-av.pt*.6-Tx*.6-.3*hk,Hy-Ty*.3,0);
  av.g.scale.set(1+.06*lk,1-.1*lk,1+.06*lk);
- av.g.position.set(av.x,av.y+.27*av.dl+bob,av.z);av.g.rotation.set((av.deathPose===1?1:-1)*Math.PI/2*av.dl,av.ry,av.deathPose===2?Math.PI/2*av.dl:0);
+ av.g.position.set(av.x,av.y+(av.deathPose===2?.36:.33)*av.dl+bob,av.z);av.g.rotation.set((av.deathPose===1?1:-1)*Math.PI/2*av.dl,av.ry,av.deathPose===2?Math.PI/2*av.dl:0);
  if(av.spr)av.spr.position.set(0,.2*av.dl+2.5*(1-av.dl),1.4*av.dl);
  if(av.domeT>0){av.domeT=Math.max(0,av.domeT-dt);if(av.domeT<=0)setAvDome(av,0);else if(av.domeG){const q=.5+.5*Math.sin(av.t*5);av.domeG.userData.sh.material.opacity=.14+q*.025;av.domeG.userData.wf.material.opacity=.3+q*.1}}
  av.g.visible=state==='playing'}
@@ -3333,7 +3333,7 @@ function specPost0(){
  if(!ok||!l.length){if(SPEC.on){SPEC.on=0;SPEC.id=-1;sb.style.display='none';sb._h=''}return}
  if(!l.includes(SPEC.id))SPEC.id=l[0];
  SPEC.on=1;const a=NET.av[SPEC.id];
- camera.position.set(a.x,a.y+1.6,a.z);camera.rotation.set(a.pt,a.ry-Math.PI,0,'YXZ');
+ const spy=a.ry-Math.PI;camera.position.set(a.x-Math.sin(spy)*.22,a.y+1.6,a.z-Math.cos(spy)*.22);camera.rotation.set(a.pt,spy,0,'YXZ');
  sun.position.set(a.x+24,a.y+40,a.z+14);sun.target.position.set(a.x,a.y,a.z);
  const h='👁 Наблюдение: <b>'+esc(pName(SPEC.id))+'</b>'+(l.length>1?'<br><small>ЛКМ / ПКМ — переключить игрока</small>':'');
  if(sb._h!==h){sb._h=h;sb.innerHTML=h}sb.style.display='block'}
