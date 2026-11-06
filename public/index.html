@@ -603,6 +603,7 @@ const fF=(i,j)=>{if(j<3||(j===3&&hs(i,j,9)>.4)||(j===4&&(i<2||i>13)))return hair
  if(j>=8&&j<=9&&(i===7||i===8))return skin(i,j,.86);
  if(j===9&&(i===3||i===12))return K([240,150,140]);
  return skin(i,j)};
+const fBlink=(i,j)=>{const eye=(i>=2&&i<=5)||(i>=10&&i<=13);if(eye&&(j===6||j===7))return j===7&&(i===3||i===4||i===11||i===12)?K([91,51,44]):K([202,139,116],.9);return fF(i,j)};
 const fS=(i,j)=>(j<4||(j<7&&i>10))?hair(i,j):(j>=6&&j<=8&&i>=6&&i<=9)?skin(i,j,.85):skin(i,j);
 // Костюм игрока: графитовая футболка, открытые руки и тёмные штаны в пиксельном стиле.
 const shT=(i,j)=>{let k=.82+hs(i,j,91)*.22;let c=[35,37,43];if(j<2)c=[49,51,59];if(j>13)c=[24,25,31];if(i===0||i===15)c=[27,28,34];if(hs(i,j,92)<.08)c=[44,46,53];return K(c,k)};
@@ -618,7 +619,7 @@ reg('gT',32,gT);reg('dT',32,dT);reg('gS',32,gS);reg('sT',32,sT);reg('stone',32,s
 reg('wT',32,wT,W/2);reg('fl',16,flT);reg('cloud',16,clT);reg('sun',16,snT);
 const bushT=(i,j)=>{const n=fb(i,j,2),r=hs(i,j,71),e=Math.min(i,j,15-i,15-j);let c=[55,135,25];if(r<.14)c=[30,90,10];else if(r<.28)c=[75,165,30];else if(r<.36)c=[35,110,15];const tip=e===0&&r>.65;return K(tip?[170,220,70]:c,(.52+n*.95)*E(i,j))};
 reg('bsh',16,bushT);
-reg('fF',16,fF);reg('fS',16,fS);reg('fB',16,(i,j)=>j<13?hair(i,j):skin(i,j,.9));reg('fT',16,hair);reg('fD',16,(i,j)=>skin(i,j,.8));reg('hair',16,hair);
+reg('fF',16,fF);reg('fBlink',16,fBlink);reg('fS',16,fS);reg('fB',16,(i,j)=>j<13?hair(i,j):skin(i,j,.9));reg('fT',16,hair);reg('fD',16,(i,j)=>skin(i,j,.8));reg('hair',16,hair);
 reg('shirt',16,shT);reg('arm',16,armT);reg('leg',16,legT);reg('skinF',16,skin);
 reg('grip',16,(i,j)=>(i+j)%4<2?K([107,68,35],.9):K([80,50,26]));reg('guard',16,(i,j)=>K([140,142,150],.75+hs(i,j,8)*.3));
 reg('blade',16,bladeT([185,232,250]));reg('blade2',16,bladeT([120,190,235]));
@@ -1109,20 +1110,16 @@ const THR={rapier:1,dagger:.8,saber:.3,sword:.15,katana:0,great:0};
 // ---------- рука от первого лица: перчатка, наруч, рукав ----------
 const hand=new THREE.Group();
 {const T=(n,f)=>{const c=document.createElement('canvas');c.width=c.height=n;const x=c.getContext('2d');for(let j=0;j<n;j++)for(let i=0;i<n;i++){x.fillStyle=f(i,j);x.fillRect(i,j,1,1)}const t=new THREE.CanvasTexture(c);t.magFilter=THREE.NearestFilter;t.minFilter=THREE.NearestFilter;return t};
- TX.hSkin=T(16,(i,j)=>K([236,188,146],(.9+hs(i,j,301)*.1)*(j<2?.9:1)));
- TX.hGlove=T(16,(i,j)=>{const st=j%5===0||i===0||i===15;return K([92,58,34],(st?.7:.95)+hs(i,j,302)*.12)});
- TX.hBracer=T(16,(i,j)=>{if(j<2||j>13)return K([214,170,60],.85+hs(i,j,303)*.25);if(j===6||j===9)return K([60,38,22],.9);if((j===7||j===8)&&(i===4||i===11))return K([230,200,120]);return K([120,74,40],.8+fb(i,j,304)*.4)});
- TX.hSleeve=T(16,(i,j)=>{const f=Math.sin(i*.9+j*.35)*.06;return j>12?K([214,170,60],.85+hs(i,j,305)*.2):K([38,86,160],.82+f+hs(i,j,306)*.12)});}
-const HM={skin:new THREE.MeshLambertMaterial({map:TX.hSkin}),glove:new THREE.MeshLambertMaterial({map:TX.hGlove}),bracer:new THREE.MeshLambertMaterial({map:TX.hBracer}),sleeve:new THREE.MeshLambertMaterial({map:TX.hSleeve})};
+ TX.hSkin=T(16,(i,j)=>K([232,184,142],(.94+hs(i,j,301)*.08)*(j<2?.94:1)));
+ TX.hSleeve=T(16,(i,j)=>{let c=[34,36,43];if(j<2)c=[52,54,61];if(j>13)c=[24,25,31];if(i===0||i===15)c=[27,28,34];return K(c,.86+hs(i,j,306)*.2)});}
+const HM={skin:new THREE.MeshLambertMaterial({map:TX.hSkin}),sleeve:new THREE.MeshLambertMaterial({map:TX.hSleeve})};
 const armG=new THREE.Group();hand.add(armG);
-const hb=(w,h,d,m,x,y,z,rx=0)=>{const q=new THREE.Mesh(new THREE.BoxGeometry(w,h,d),m);q.position.set(x,y,z);q.rotation.x=rx;armG.add(q);return q};
-hb(.135,.135,.36,HM.skin,0,-.005,.12);           // предплечье
-hb(.165,.165,.2,HM.bracer,0,-.005,.02);          // кожаный наруч с золотой каймой
-hb(.19,.19,.2,HM.sleeve,0,-.005,.33);            // рукав
-hb(.17,.165,.15,HM.glove,0,.005,-.17);           // кулак в перчатке
-for(let k=0;k<4;k++)hb(.06,.036,.035,HM.glove,-.045,.06-k*.038,-.255);  // пальцы, обхватывающие рукоять
-hb(.06,.05,.1,HM.glove,-.035,.095,-.2,-.2);      // большой палец
-hb(.18,.03,.1,HM.bracer,0,-.09,-.17);            // ремешок
+const hb=(w,h,d,m,x,y,z)=>{const q=new THREE.Mesh(new THREE.BoxGeometry(w,h,d),m);q.position.set(x,y,z);armG.add(q);return q};
+// Простая прямоугольная рука без брони: пиксельный рукав, предплечье и кулак.
+hb(.22,.22,.2,HM.sleeve,0,-.005,.34);
+hb(.2,.2,.38,HM.skin,0,-.005,.05);
+hb(.21,.2,.18,HM.skin,0,-.005,-.23);
+hb(.09,.11,.13,HM.skin,.14,-.015,-.2); // большой палец
 camera.add(hand);
 document.addEventListener('keydown',e=>{
  if(e.code==='KeyE'&&!e.repeat){if(state==='playing'){quickMenu=1;if(document.pointerLockElement){invAfterLock=1;document.exitPointerLock()}else{state='paused';$('ttl').textContent='ПАУЗА';$('bStart').textContent='Продолжить';showMenu('mQ')}}
@@ -1917,7 +1914,8 @@ $('bStart').onclick=()=>{musicStart('battle');try{if(state!=='paused')newGame()}
  $('ttl').textContent='CUBEFIGHT';lock();
  // запасной вариант: если браузер не дал захватить мышь (например, в окне предпросмотра) — всё равно начинаем игру
  setTimeout(()=>{if(!document.pointerLockElement&&state!=='playing'){state='playing';$('menu').style.display='none'}},150)};
-addEventListener('keydown',e=>{if(e.code==='Escape'&&state==='playing'&&!document.pointerLockElement){state='paused';$('ttl').textContent='ПАУЗА';$('bStart').textContent='Продолжить';showMenu('mMain')}});
+window.cfPauseFromChat=()=>{if(state!=='playing')return;quickMenu=0;pauseOnLockLoss=false;state='paused';$('ttl').textContent='ПАУЗА';$('bStart').textContent='Продолжить';showMenu('mMain');if(document.pointerLockElement)document.exitPointerLock()};
+addEventListener('keydown',e=>{if(e.code==='Escape'&&state==='playing'&&!document.pointerLockElement){e.preventDefault();e.stopImmediatePropagation();state='paused';$('ttl').textContent='ПАУЗА';$('bStart').textContent='Продолжить';showMenu('mMain')}});
 $('bSet').onclick=()=>showMenu('mSet');
 $('bLang').onclick=()=>{lang=lang==='ru'?'en':'ru';try{localStorage.setItem('cf_lang',lang)}catch(e){}applyLanguage()};
 $('bBack').onclick=()=>showMenu('mMain');
@@ -1975,7 +1973,9 @@ function gfxRender(){
 const noRedraw=e=>{if(!e)return;const d=Object.getOwnPropertyDescriptor(Element.prototype,'innerHTML');Object.defineProperty(e,'innerHTML',{get(){return d.get.call(this)},set(v){if(this._h!==v){this._h=v;d.set.call(this,v)}},configurable:true})};
 ['buffs','combo'].forEach(id=>noRedraw($(id)));
 GL=S.gfx||_ga||3;applyGfx();fpsBtn();
-addEventListener('keydown',e=>{if(e.code==='Escape'&&($('mSet').style.display==='flex'||$('mCase').style.display==='flex'||$('mInv').style.display==='flex'||$('mQ').style.display==='flex')){quickMenu=0;showMenu('mMain')}});
+addEventListener('keydown',e=>{if(e.code!=='Escape')return;
+ if(state==='paused'&&$('mMain').style.display==='flex'){e.preventDefault();e.stopPropagation();$('bStart').click();return}
+ if($('mSet').style.display==='flex'||$('mCase').style.display==='flex'||$('mInv').style.display==='flex'||$('mQ').style.display==='flex'){e.preventDefault();quickMenu=0;showMenu('mMain')}});
 
 // ---------- оружие, броня и кейсы ----------
 const RAR={c:{n:'Обычный',col:'#b8b8b8',w:50},r:{n:'Редкий',col:'#4a9dff',w:30},e:{n:'Эпический',col:'#b84dff',w:13},m:{n:'Мифический',col:'#ff3b3b',w:5},l:{n:'Легендарный',col:'#ffb300',w:2}};
@@ -2907,22 +2907,23 @@ function proxyStep(e,dt){
  e.arm.rotation.x=au>0?(au<.45?-.6-au*3.5:-2.2+(au-.45)*5.2):-1.5-sw*.08;e.arm1.rotation.x=au>0?-1.5:-1.5+sw*.08;e.arm.rotation.z=hk*.8;e.arm1.rotation.z=-hk*.8}
 
 // ---------- аватары других игроков ----------
-function mkAvatar(name,rc){
+function mkAvatar(name,rc,seed){
  const g=new THREE.Group(),mats=[],EM=t=>{const m=new THREE.MeshLambertMaterial({map:TX[t]});mats.push(m);return m};g.rotation.order='YXZ';
+ const deathPose=[...String(seed||name||'player')].reduce((n,c)=>n+c.charCodeAt(0),0)%3;
  // ноги качаются от бедра, корпус и голова — от пояса и шеи
  const L1=bx(.28,.7,.28,EM('leg'),-.17,.7,0,g),L2=bx(.28,.7,.28,EM('leg'),.17,.7,0,g);L1.geometry.translate(0,-.35,0);L2.geometry.translate(0,-.35,0);
  const T=new THREE.Group();T.position.set(0,.7,0);T.rotation.order='YXZ';g.add(T);
  bx(.62,.75,.32,EM('shirt'),0,.375,0,T);
  // Небольшая шея соединяет футболку и кубическую голову, как на референсе.
  bx(.15,.14,.15,EM('skinF'),0,.78,0,T);
- const HG=new THREE.Group();HG.position.set(0,.75,0);HG.rotation.order='YXZ';T.add(HG);bx(.52,.52,.52,['fS','fS','fT','fD','fF','fB'].map(EM),0,.26,0,HG);
+ const HG=new THREE.Group();HG.position.set(0,.75,0);HG.rotation.order='YXZ';T.add(HG);const headMats=['fS','fS','fT','fD','fF','fB'].map(EM);bx(.52,.52,.52,headMats,0,.26,0,HG);
  const A1=bx(.22,.7,.22,EM('arm'),-.42,.72,0,T),A2=bx(.22,.7,.22,EM('arm'),.42,.72,0,T);A1.geometry.translate(0,-.35,0);A2.geometry.translate(0,-.35,0);
  const c=document.createElement('canvas');c.width=256;c.height=56;const x=c.getContext('2d');
  x.fillStyle='rgba(0,0,0,.55)';x.fillRect(0,6,256,44);x.font='bold 26px system-ui,Arial,sans-serif';x.textAlign='center';x.textBaseline='middle';
  x.fillStyle='#fff';x.fillText(name,128,29,236);
  const spr=new THREE.Sprite(new THREE.SpriteMaterial({map:new THREE.CanvasTexture(c),transparent:true,depthWrite:false,fog:false}));spr.scale.set(2,.44,1);spr.position.y=2.5;g.add(spr);
  scene.add(g);
- return{g,T,HG,Hd:HG,L1,L2,A1,A2,spr,mats,rc,name,x:0,y:0,z:0,tx:0,ty:0,tz:0,ry:0,tr:0,pt:0,t:0,sw:0,swd:.25,sd:1,fresh:1,sp:0,vy:0,ar:0,mv:0,rb:0,ph:0,land:0,wa:0,hurt:0,hk:0,held:'',ho:null,domeG:null,domeT:0,hp:20}}
+ return{g,T,HG,Hd:HG,faceMat:headMats[4],eyeClosed:false,blinkT:1.2+Math.random()*3.2,blinkFor:0,deathPose,L1,L2,A1,A2,spr,mats,rc,name,x:0,y:0,z:0,tx:0,ty:0,tz:0,ry:0,tr:0,pt:0,t:0,sw:0,swd:.25,sd:1,fresh:1,sp:0,vy:0,ar:0,mv:0,rb:0,ph:0,land:0,wa:0,hurt:0,hk:0,held:'',ho:null,domeG:null,domeT:0,hp:20}}
 // Прозрачный синий купол на удалённом аватаре; время действия приходит в сетевом снимке.
 function setAvDome(av,time){
  const t=Math.max(0,Math.min(DOME_DUR,+time||0));av.domeT=t;
@@ -2960,6 +2961,7 @@ function avStep(av,dt){
  av.ar+=(air-av.ar)*Math.min(1,dt*14);
  av.mv+=(Math.min(1,av.sp/2.4)-av.mv)*Math.min(1,dt*10);av.rb+=(Math.max(0,Math.min(1,(av.sp-4.6)/1.8))-av.rb)*Math.min(1,dt*8);
  av.ph+=dt*(4+av.sp*1.25);av.t+=dt;
+ if(av.faceMat){if(dn)av.blinkFor=0;else if(av.blinkFor<=0){av.blinkT-=dt;if(av.blinkT<=0){av.blinkFor=.13;av.blinkT=2.2+Math.random()*3.8}}if(av.blinkFor>0)av.blinkFor=Math.max(0,av.blinkFor-dt);const shut=dn||av.blinkFor>0;if(shut!==av.eyeClosed){av.faceMat.map=TX[shut?'fBlink':'fF'];av.faceMat.needsUpdate=true;av.eyeClosed=shut}}
  const M=av.mv,R=av.rb,ph=av.ph,amp=(.6+.5*R)*M,sw=Math.sin(ph)*amp,held=av.held?1:0,ar=av.ar,up=av.vy>0?1:0,idle=Math.sin(av.t*1.4)*.015;
  // --- ходьба / бег ---
  let L1x=sw,L2x=-sw,A1x=-sw*(.85+.2*R)-.3*R*M,A2x=held?-.85+sw*.3-.25*R*M:sw*(.85+.2*R)-.3*R*M,A1z=-.05-idle,A2z=.05+idle,
@@ -2981,17 +2983,18 @@ function avStep(av,dt){
  if(hk>0||av.hk>0){av.hk=hk;av.mats.forEach(m=>m.emissive.setRGB(.8*hk,.06*hk,.06*hk))}
  // --- применяем позу ---
  av.dl=(av.dl||0)+((dn?1:0)-(av.dl||0))*Math.min(1,dt*7);
- if(dn){L1x=L2x=A1x=0;A2x=-.2;A1z=A2z=0;Tx=Ty=Hy=bob=0}
+ if(dn){const pose=av.deathPose||0,targets=pose===1?[-.18,.12,-.72,-.72,-.42,.42,-.08]:pose===2?[.28,-.3,-.85,-.12,-.48,.56,.16]:[-.08,.06,-.72,-.18,-.2,.26,.06];
+  L1x=lp(L1x,targets[0],av.dl);L2x=lp(L2x,targets[1],av.dl);A1x=lp(A1x,targets[2],av.dl);A2x=lp(A2x,targets[3],av.dl);A1z=lp(A1z,targets[4],av.dl);A2z=lp(A2z,targets[5],av.dl);Tx=lp(Tx,targets[6],av.dl);Ty=Hy=bob=0}
  av.L1.rotation.x=L1x;av.L2.rotation.x=L2x;av.A1.rotation.x=A1x;av.A2.rotation.x=A2x;av.A1.rotation.z=A1z;av.A2.rotation.z=A2z;
  av.T.rotation.set(Tx,Ty,0);av.HG.rotation.set(dn?0:-av.pt*.6-Tx*.6-.3*hk,Hy-Ty*.3,0);
  av.g.scale.set(1+.06*lk,1-.1*lk,1+.06*lk);
- av.g.position.set(av.x,av.y+.27*av.dl+bob,av.z);av.g.rotation.y=av.ry;av.g.rotation.x=-Math.PI/2*av.dl;
+ av.g.position.set(av.x,av.y+.27*av.dl+bob,av.z);av.g.rotation.set((av.deathPose===1?1:-1)*Math.PI/2*av.dl,av.ry,av.deathPose===2?Math.PI/2*av.dl:0);
  if(av.spr)av.spr.position.set(0,.2*av.dl+2.5*(1-av.dl),1.4*av.dl);
  if(av.domeT>0){av.domeT=Math.max(0,av.domeT-dt);if(av.domeT<=0)setAvDome(av,0);else if(av.domeG){const q=.5+.5*Math.sin(av.t*5);av.domeG.userData.sh.material.opacity=.14+q*.025;av.domeG.userData.wf.material.opacity=.3+q*.1}}
  av.g.visible=state==='playing'}
 function avSet(id,a){
  let av=NET.av[id];const nm=(NET.players.find(q=>q.id===id)||{}).name||('Игрок '+id);
- if(!av)av=NET.av[id]=mkAvatar(nm,a[10]);
+ if(!av)av=NET.av[id]=mkAvatar(nm,a[10],id);
  av.rc=a[10];const hd=String(a[13]||'');if(hd!==av.held)setAvHeld(av,hd);setAvDome(av,+a[14]||0);av.inv=String(a[15]||'');
  if(a[6]<av.hp-.01&&!a[11])av.hurt=.35;av.hp=a[6];
  av.tx=a[1];av.ty=a[2];av.tz=a[3];av.tr=a[4]+Math.PI;av.pt=a[5];av.sw=a[7];av.swd=a[8]||.25;av.sd=a[9]||1;av.down=!!a[11];NET.hp[id]=a[6];NET.dn[id]=!!a[11]}
@@ -3375,7 +3378,7 @@ function specExtra(){
  // собственное тело: видно только глазами друга
  const dn=play&&p.down&&!NET.over;
  if(dn){
-  if(!_sdw){_sy=yaw;if(selfAv){scene.remove(selfAv.g);selfAv=null}selfAv=mkAvatar(NET.name||'Вы',(HW||WP).r);setAvHeld(selfAv,heldCode())}
+  if(!_sdw){_sy=yaw;if(selfAv){scene.remove(selfAv.g);selfAv=null}selfAv=mkAvatar(NET.name||'Вы',(HW||WP).r,NET.id||NET.name);setAvHeld(selfAv,heldCode())}
   const s=selfAv;s.tx=p.x;s.ty=p.y;s.tz=p.z;s.tr=_sy+Math.PI;s.pt=0;s.down=true;avStep(s,dt);s.g.visible=!!SPEC.on;beam(s,!!SPEC.on,p.x,p.y,p.z)}
  else if(selfAv){selfAv.g.visible=false;beam(selfAv,false)}
  _sdw=dn?1:0;
@@ -4740,7 +4743,7 @@ body.mob #phoneMenuScaleWrap{display:flex;}
  document.getElementById('cfChatClose').addEventListener('click',close);
  mobileButton?.addEventListener('click',()=>opened?close():open());
  document.addEventListener('keydown',e=>{
-  if(opened){if(e.code==='Escape'){e.preventDefault();e.stopImmediatePropagation();close();return}if(e.code==='Enter'&&!e.isComposing){e.preventDefault();e.stopImmediatePropagation();send();return}e.stopImmediatePropagation();return}
+  if(opened){if(e.code==='Escape'){e.preventDefault();e.stopImmediatePropagation();close();window.cfPauseFromChat?.();return}if(e.code==='Enter'&&!e.isComposing){e.preventDefault();e.stopImmediatePropagation();send();return}e.stopImmediatePropagation();return}
   if(e.code==='KeyT'&&!e.repeat&&menu&&menu.style.display==='none'){e.preventDefault();e.stopImmediatePropagation();open()}
  },true);
 })();
