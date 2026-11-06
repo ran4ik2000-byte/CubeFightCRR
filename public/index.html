@@ -4737,7 +4737,7 @@ body.mob #phoneMenuScaleWrap{display:flex;}
  const updateLanguage=()=>{const en=/English/.test(document.getElementById('bLang')?.textContent||'');document.getElementById('cfChatHint').textContent=en?'CHAT · Enter to send · Esc to close':'ЧАТ · Enter — отправить · Esc — закрыть';input.placeholder=en?'Type a message…':'Напиши сообщение…';input.setAttribute('aria-label',en?'Chat message':'Сообщение в чате');document.getElementById('cfChatSend').textContent=en?'Send':'Отправить';document.getElementById('cfChatClose').setAttribute('aria-label',en?'Close chat':'Закрыть чат');if(mobileButton)mobileButton.setAttribute('aria-label',en?'Open chat':'Открыть чат')};
  document.getElementById('bLang')?.addEventListener('click',()=>setTimeout(updateLanguage,0));updateLanguage();
  const close=()=>{opened=false;form.hidden=true;document.body.classList.remove('cf-chat-open');input.blur()};
- const open=()=>{if(menu&&menu.style.display!=='none')return;opened=true;form.hidden=false;document.body.classList.add('cf-chat-open');input.value='';input.focus()};
+ const open=()=>{if((typeof NET==='undefined'||!NET.on)||(menu&&menu.style.display!=='none'))return;opened=true;form.hidden=false;document.body.classList.add('cf-chat-open');input.value='';input.focus()};
  const add=(name,text)=>{const row=document.createElement('div');row.className='cf-chat-line';const who=document.createElement('b');who.textContent=String(name||'Игрок').slice(0,16)+':';const body=document.createElement('span');body.textContent=String(text||'').slice(0,160);row.append(who,body);feed.appendChild(row);while(feed.children.length>6)feed.firstChild.remove();setTimeout(()=>{row.style.opacity='0';setTimeout(()=>row.remove(),400)},8000)};
  window.cfLocalChatMessage=add;
  const playerName=()=>{try{if(typeof NET!=='undefined'&&NET.on&&NET.name)return String(NET.name).slice(0,16)}catch(e){}try{return String(window.cfDisplayName||localStorage.getItem('cf_name')||'Игрок').slice(0,16)}catch(e){return 'Игрок'}};
@@ -4746,13 +4746,16 @@ body.mob #phoneMenuScaleWrap{display:flex;}
  document.getElementById('cfChatClose').addEventListener('click',close);
  mobileButton?.addEventListener('click',()=>opened?close():open());
  document.addEventListener('keydown',e=>{
-  if(opened){if(e.code==='Escape'){e.preventDefault();e.stopImmediatePropagation();close();window.cfPauseFromChat?.();return}if(e.code==='Enter'&&!e.isComposing){e.preventDefault();e.stopImmediatePropagation();send();return}e.stopImmediatePropagation();return}
+  if(opened){if(e.code==='Escape'){e.preventDefault();e.stopImmediatePropagation();close();return}if(e.code==='Enter'&&!e.isComposing){e.preventDefault();e.stopImmediatePropagation();send();return}e.stopImmediatePropagation();return}
   if(e.code==='KeyT'&&!e.repeat&&menu&&menu.style.display==='none'){e.preventDefault();e.stopImmediatePropagation();open()}
  },true);
 })();
 </script>
 
-</body></html>
+
+
+
+
 
 <style id="cf-leaderboard-style">
 #cfLeaderboard{position:fixed;z-index:8;left:calc(50% + 275px);top:50%;transform:translateY(-50%);box-sizing:border-box;width:min(390px,calc(50vw - 300px));min-width:230px;max-height:84vh;overflow:hidden;display:none;flex-direction:column;gap:10px;padding:16px;background:linear-gradient(145deg,#1b251bF2,#0b100bf5 68%,#080b08f5);border:3px solid #7bd35a;box-shadow:inset 0 0 0 2px #000b,0 16px 50px #000c,0 0 22px #7bd35a33;color:#f3f7ed;font-family:system-ui,Arial,sans-serif}
@@ -5230,10 +5233,10 @@ body.mob #menu #mSet :focus-visible{outline:3px solid #ffe27a;outline-offset:2px
  if(ctlButton){if(!ctlSection){ctlSection=document.createElement('section');ctlSection.className='cf-settings-section cf-phone-controls-section';ctlSection.innerHTML='<h2>Управление на телефоне</h2><p class="cf-settings-note">Настрой расположение и размер сенсорных кнопок.</p>';grid.appendChild(ctlSection)}ctlSection.appendChild(ctlButton)}
  const groups=ctlButton?[...baseGroups,['Телефон','Управление на телефоне']]:baseGroups;
  if(ctlButton)sections.push(ctlSection);
- const nav=document.createElement('div');nav.className='cf-settings-tabs';nav.setAttribute('role','tablist');nav.setAttribute('aria-label','Разделы настроек телефона');
+ const nav=document.createElement('div');nav.className='cf-settings-tabs';nav.setAttribute('role','tablist');nav.setAttribute('aria-label','Разделы настроек');
  const tabs=groups.map(([label],i)=>{const b=document.createElement('button');b.type='button';b.className='cf-settings-tab';b.id='cfPhoneSettingsTab'+i;b.setAttribute('role','tab');b.setAttribute('aria-controls','cfPhoneSettingsSection'+i);b.textContent=label;nav.appendChild(b);sections[i].id='cfPhoneSettingsSection'+i;sections[i].setAttribute('role','tabpanel');sections[i].setAttribute('aria-labelledby',b.id);return b});
  grid.before(nav);let active=0;
- const select=i=>{active=(i+tabs.length)%tabs.length;tabs.forEach((b,n)=>{b.setAttribute('aria-selected',String(n===active));b.tabIndex=n===active?0:-1;sections[n].hidden=document.body.classList.contains('mob')&&n!==active});};
+ const select=i=>{active=(i+tabs.length)%tabs.length;tabs.forEach((b,n)=>{b.setAttribute('aria-selected',String(n===active));b.tabIndex=n===active?0:-1;sections[n].hidden=n!==active});};
  tabs.forEach((b,i)=>{b.addEventListener('click',()=>select(i));b.addEventListener('keydown',e=>{let n=active;if(e.key==='ArrowRight')n++;else if(e.key==='ArrowLeft')n--;else if(e.key==='Home')n=0;else if(e.key==='End')n=tabs.length-1;else return;e.preventDefault();select(n);tabs[n].focus()})});
  const mode=()=>{select(active);nav.setAttribute('aria-hidden',String(!document.body.classList.contains('mob')))};
  new MutationObserver(mode).observe(document.body,{attributes:true,attributeFilter:['class']});
@@ -5241,3 +5244,195 @@ body.mob #menu #mSet :focus-visible{outline:3px solid #ffe27a;outline-offset:2px
  mode();
 })();
 </script>
+<style id="cf-requested-ui-style">
+/* Play-mode chooser */
+#mPlayChoice{position:absolute;left:50%;top:50%;z-index:4;display:none;flex-direction:column;gap:14px;width:min(440px,calc(100vw - 32px));max-height:calc(100dvh - 32px);overflow:auto;overscroll-behavior:contain;padding:clamp(20px,4vw,32px);background:linear-gradient(145deg,#1b261bfa,#0b100df5),var(--tex-stone,#36333a) 0 0/64px 64px!important;background-blend-mode:normal,soft-light;border:3px solid #547944!important;box-shadow:inset 0 0 0 2px #080d08,inset 0 0 0 4px #98ca5140,0 18px 58px #000e,0 0 38px #77b74444!important;color:#f4f7ef;text-align:center}
+#mPlayChoice h1{margin:0 0 4px;color:#f3f6ee;font:700 clamp(22px,4vw,30px)/1.25 system-ui,'Segoe UI',Arial,sans-serif;text-shadow:3px 3px #263b22,0 0 18px #82c75a55}
+#mPlayChoice p{margin:0 0 4px;color:#c1cbb9;font:15px/1.5 system-ui,'Segoe UI',Arial,sans-serif}
+#mPlayChoice button{width:100%;min-height:54px;padding:12px 14px!important;font:700 15px/1.35 system-ui,'Segoe UI',Arial,sans-serif!important}
+#mPlayChoice #bLocal{min-height:54px;background:var(--tex-lapis,#244c98) 0 0/64px 64px!important;--g:#4d7dff}
+#mPlayChoice #cfPlaySingle{background:var(--tex-moss,#356e31) 0 0/64px 64px!important;--g:#8bd36b}
+#mPlayChoice #cfPlayBack{background:var(--tex-stone,#7f7a87) 0 0/64px 64px!important;--g:#d4d4d4}
+#mPlayChoice button:hover:not(:disabled){filter:brightness(1.15);transform:translateY(-1px)}
+#mPlayChoice button:focus-visible,#menu #mSet .cf-settings-tab:focus-visible{outline:3px solid #ffe27a;outline-offset:3px}
+
+/* Consistent tabbed settings on desktop and phone */
+#menu #mSet{width:min(920px,calc(100vw - 32px))!important;height:auto!important;max-height:calc(100dvh - 24px - env(safe-area-inset-top,0px) - env(safe-area-inset-bottom,0px))!important;min-height:0!important;overflow:hidden!important;gap:12px!important}
+@media(min-width:701px){#menu #mSet .cf-settings-grid{flex:0 1 auto;max-height:calc(90dvh - 260px)}}
+#menu #mSet .cf-settings-tabs{display:grid!important;grid-template-columns:repeat(5,minmax(0,1fr));gap:7px;flex:0 0 auto}
+#menu #mSet .cf-settings-tab{min-width:0;min-height:46px;padding:7px 5px!important;background:#202820!important;border:2px solid #60764d!important;box-shadow:inset 2px 2px #ffffff24,inset -2px -2px #0008!important;color:#eaf3e3!important;font:700 12px/1.25 system-ui,'Segoe UI',Arial,sans-serif!important;white-space:normal;overflow-wrap:anywhere;touch-action:manipulation}
+#menu #mSet .cf-settings-tab[aria-selected="true"]{background:var(--tex-moss,#356e31) 0 0/64px 64px!important;border-color:#b0df79!important;color:#fff!important;box-shadow:inset 2px 2px #ffffff48,0 0 0 1px #172216!important}
+#menu #mSet .cf-settings-grid{display:block!important;flex:1 1 auto;min-height:0;overflow-x:hidden;overflow-y:auto;overscroll-behavior:contain;-webkit-overflow-scrolling:touch;padding:0 3px 4px 0;scrollbar-width:thin}
+#menu #mSet .cf-settings-section[hidden]{display:none!important}
+#menu #mSet .cf-settings-section{display:flex;flex-direction:column;gap:12px;padding:15px}
+#menu #mSet .cf-phone-controls-section{display:flex!important}
+#menu #mSet .cf-settings-account{display:flex!important;flex-direction:column;align-items:stretch!important;gap:10px}
+#menu #mSet .cf-settings-account #cfAccountLabel{width:100%;padding:10px 12px;background:#101710;border:1px solid #71905b8c}
+#menu #mSet .cf-settings-account #cfAccountLabel:empty,#menu #mSet .cf-settings-account #cfNicknameStatus:empty{display:none!important}
+#menu #mSet .cf-settings-account #bAccountLogout{width:100%;min-height:50px;margin-top:6px;background:linear-gradient(#a8443e,#72211d)!important;border:2px solid #30100d!important;color:#fff!important;font:700 13px/1.4 system-ui,'Segoe UI',Arial,sans-serif!important}
+#menu #mSet #bDev,#menu #mSet #cfResetSettings,#menu #mSet #bFps,#menu #mSet #bLang{min-height:48px;padding:9px 12px!important;border:2px solid #101610!important;box-shadow:inset 2px 2px #ffffff30,inset -2px -2px #0008,2px 2px 0 #070b07!important;color:#f4f7ef!important;font:700 13px/1.4 system-ui,'Segoe UI',Arial,sans-serif!important;white-space:normal}
+#menu #mSet #bDev{background:var(--tex-lapis,#244c98) 0 0/64px 64px!important}
+#menu #mSet #cfResetSettings{background:#323b2d!important;border-color:#77865e!important}
+#menu #mSet #bFps{background:var(--tex-copper,#8a552e) 0 0/64px 64px!important}
+#menu #mSet #bLang{background:var(--tex-lapis,#244c98) 0 0/64px 64px!important}
+#menu #mSet .cf-settings-actions{display:flex!important;flex:0 0 auto;align-items:center;gap:10px;margin:0 -18px;padding:10px 18px 2px}
+#menu #mSet .cf-settings-actions #bBack{width:100%;min-height:56px!important;padding:12px 16px!important;font-size:14px!important;line-height:1.35!important;background:var(--tex-gold,#b88612) 0 0/64px 64px!important;border:3px solid #050605!important;box-shadow:inset 3px 3px 0 #ffffff44,inset -3px -3px 0 #0009,0 3px 0 #000!important;color:#fff!important;text-shadow:2px 2px 0 #000c!important}
+#menu #mSet .cf-settings-actions #cfSettingsResetStatus{flex:1 1 auto;min-width:0;grid-column:auto}
+#menu #mSet .cf-settings-actions #bLang,#menu #mSet .cf-settings-actions #bFps,#menu #mSet .cf-settings-actions #cfResetSettings{display:none!important}
+@media(max-width:700px){
+ #menu #mSet{width:calc(100vw - 16px)!important;max-width:calc(100vw - 16px)!important;height:min(92dvh,760px)!important;padding:10px!important;gap:8px!important}
+ #menu #mSet .cf-settings-heading{align-items:flex-start;flex-direction:row;gap:8px;padding:0 0 7px}
+ #menu #mSet .cf-settings-heading h1{font-size:21px!important;margin-top:5px!important}
+ #menu #mSet .cf-settings-heading p{display:none}
+ #menu #mSet .cf-settings-tabs{grid-template-columns:repeat(6,minmax(0,1fr));gap:5px}
+ body.mob #menu #mSet .cf-settings-tabs{grid-template-columns:repeat(6,minmax(0,1fr))!important}
+ #menu #mSet .cf-settings-tab:nth-child(-n+3){grid-column:span 2}
+ #menu #mSet .cf-settings-tab:nth-child(n+4){grid-column:span 3}
+ #menu #mSet .cf-settings-tab{min-height:46px;padding:5px 4px!important;font-size:12px!important}
+ #menu #mSet .cf-settings-grid{padding-right:1px}
+ #menu #mSet .cf-settings-section{gap:9px;padding:11px}
+ #menu #mSet .cf-settings-section h2{font-size:14px}
+ #menu #mSet .cf-settings-actions{margin:0 -10px;padding:8px 10px 0}
+ #menu #mSet .cf-settings-actions #bBack{min-height:56px!important;font-size:14px!important}
+ #mPlayChoice{width:calc(100vw - 24px);max-height:calc(100dvh - 24px);gap:12px;padding:20px}
+ #mPlayChoice button{min-height:54px;font-size:14px!important}
+}
+@media(max-width:360px){#menu #mSet .cf-settings-tab{font-size:11px!important;padding:5px 2px!important}}
+@media(prefers-reduced-motion:reduce){#mPlayChoice *,#menu #mSet *{animation:none!important;scroll-behavior:auto!important;transition:none!important}}
+
+/* Chat is only available in local multiplayer, not solo play. */
+body:not(.cf-multiplayer-chat) #sysChat,body:not(.cf-multiplayer-chat) #cfChatFeed,body:not(.cf-multiplayer-chat) #cfChatForm,body:not(.cf-multiplayer-chat) #mob #bChat{display:none!important}
+</style>
+<script id="cf-requested-ui">
+(()=>{
+  'use strict';
+  const $=id=>document.getElementById(id);
+  const menu=$('menu'),main=$('mMain'),settings=$('mSet'),grid=settings?.querySelector('.cf-settings-grid');
+  if(!menu||!main||!settings||!grid)return;
+
+  // Add the dedicated mode picker and reuse the existing local-game entry point.
+  const picker=document.createElement('section');picker.id='mPlayChoice';picker.className='panel';picker.setAttribute('aria-labelledby','cfPlayTitle');picker.setAttribute('role','dialog');picker.setAttribute('aria-modal','true');
+  picker.innerHTML='<h1 id="cfPlayTitle">Выбери режим игры</h1><p>Выбери, как хочешь играть</p><button id="cfPlaySingle" type="button">Одиночная игра</button><button id="cfPlayBack" type="button">← В главное меню</button>';
+  menu.appendChild(picker);
+  const localButton=$('bLocal');
+  if(localButton)picker.insertBefore(localButton,$('cfPlayBack'));
+  const singleButton=$('cfPlaySingle'),backButton=$('cfPlayBack'),startButton=$('bStart');
+
+  // Relocate account and game controls to their requested settings groups.
+  const sections=[...grid.querySelectorAll('.cf-settings-section')];
+  const gameSection=sections.find(s=>s.querySelector('h2')?.textContent.trim()==='Игровой процесс');
+  const graphicsSection=sections.find(s=>s.querySelector('h2')?.textContent.trim()==='Производительность');
+  const accountSection=sections.find(s=>s.querySelector('h2')?.textContent.trim()==='Аккаунт');
+  const footer=settings.querySelector('.cf-settings-actions');
+  const deviceButton=$('bDev'),fpsButton=$('bFps'),languageButton=$('bLang'),resetButton=$('cfResetSettings'),resetStatus=$('cfSettingsResetStatus'),backSettings=$('bBack');
+  const logoutButton=$('bAccountLogout'),accountLabel=$('cfAccountLabel');
+  if(gameSection){if(deviceButton)gameSection.appendChild(deviceButton);if(resetButton)gameSection.appendChild(resetButton);if(resetStatus)gameSection.appendChild(resetStatus)}
+  if(graphicsSection&&fpsButton)graphicsSection.appendChild(fpsButton);
+  if(accountSection){
+    const heading=accountSection.querySelector('h2');
+    if(languageButton&&heading)heading.after(languageButton);
+    if(accountLabel)accountSection.appendChild(accountLabel);
+    if(logoutButton)accountSection.appendChild(logoutButton);
+  }
+  if(footer&&backSettings){footer.replaceChildren(backSettings);backSettings.textContent='Сохранить и выйти';backSettings.setAttribute('aria-label','Сохранить и выйти');backSettings.title='Сохранить настройки и вернуться в меню'}
+  if(localButton){localButton.textContent='Локальная игра';localButton.setAttribute('aria-label','Локальная игра')}
+
+  // Add labels used by the existing language switcher.
+  try{LANG_PAIRS.push(['Одиночная игра','Single-player'],['Выбери режим игры','Choose a game mode'],['Выбери, как хочешь играть','Choose how you want to play'],['← В главное меню','← Back to main menu'],['Сохранить и выйти','Save and exit'],['Сохранить настройки и вернуться в меню','Save settings and return to menu'],['Разделы настроек','Settings sections'],['Устройство','Device'],['Игровой процесс','Gameplay'],['Производительность','Graphics'],['Графика','Graphics'],['Звук','Sound'],['Аккаунт','Account'],['Игра','Game'],['Телефон','Phone']);if(typeof applyLanguage==='function')applyLanguage()}catch(e){}
+  const setLanguageText=()=>{
+    const en=typeof lang!=='undefined'&&lang==='en';
+    if(backSettings){backSettings.textContent=en?'Save and exit':'Сохранить и выйти';backSettings.setAttribute('aria-label',backSettings.textContent);backSettings.title=en?'Save settings and return to menu':'Сохранить настройки и вернуться в меню'}
+    if(localButton&&localButton.parentNode===picker)localButton.textContent=en?'Local Game':'Локальная игра';
+    if(deviceButton)deviceButton.textContent=en?'📱💻 Device':'📱💻 Устройство';
+    if(singleButton)singleButton.textContent=en?'Single-player':'Одиночная игра';
+    const title=$('cfPlayTitle');if(title)title.textContent=en?'Choose a game mode':'Выбери режим игры';
+    const sub=picker.querySelector('p');if(sub)sub.textContent=en?'Choose how you want to play':'Выбери, как хочешь играть';
+    if(backButton)backButton.textContent=en?'← Back to main menu':'← В главное меню';
+  };
+  setLanguageText();
+  languageButton?.addEventListener('click',()=>setTimeout(setLanguageText,0));
+
+  // Match phone's one-section-at-a-time settings tabs on every screen size.
+  const tabNav=settings.querySelector('.cf-settings-tabs');
+  if(tabNav){
+    tabNav.setAttribute('aria-label','Разделы настроек');
+    const tabButtons=[...tabNav.querySelectorAll('.cf-settings-tab')];
+    const tabPanels=tabButtons.map(b=>$(b.getAttribute('aria-controls'))).filter(Boolean);
+    const applySelectedTab=requested=>{
+      let selected=Number.isInteger(requested)?requested:tabButtons.findIndex(b=>b.getAttribute('aria-selected')==='true');
+      if(selected<0)selected=0;
+      tabButtons.forEach((b,i)=>{b.setAttribute('aria-selected',String(i===selected));b.tabIndex=i===selected?0:-1});
+      tabPanels.forEach((p,i)=>{p.hidden=i!==selected});
+      syncAccountControls();
+      if(typeof fitMenu==='function'&&settings.style.display==='flex')setTimeout(fitMenu,0);
+    };
+    tabButtons.forEach((button,index)=>{
+      button.onclick=()=>applySelectedTab(index);
+      button.addEventListener('pointerdown',()=>applySelectedTab(index));
+      button.addEventListener('click',()=>applySelectedTab(index));
+    });
+    tabNav.addEventListener('keydown',e=>{if(['ArrowRight','ArrowLeft','Home','End'].includes(e.key))setTimeout(applySelectedTab,0)});
+    new MutationObserver(applySelectedTab).observe(document.body,{attributes:true,attributeFilter:['class']});
+    applySelectedTab();
+  }
+
+  function syncAccountControls(){
+    const accountVisible=!!accountSection&&!accountSection.hidden&&settings.style.display==='flex';
+    if(accountLabel)accountLabel.style.display=accountVisible?'':'none';
+    if(logoutButton)logoutButton.style.display=accountVisible?'':'none';
+  }
+  if(settings)new MutationObserver(syncAccountControls).observe(settings,{attributes:true,attributeFilter:['style']});
+
+  // A replay action goes straight back into the current game, without reopening the mode picker.
+  let skipPickerOnce=false;
+  $('bDR')?.addEventListener('click',()=>{if(typeof NET==='undefined'||!NET.on)skipPickerOnce=true},true);
+  const originalStart=startButton?.onclick;
+  if(startButton&&originalStart){
+    startButton.onclick=function(event){
+      if(skipPickerOnce){skipPickerOnce=false;return originalStart.call(this,event)}
+      if(typeof state!=='undefined'&&state==='paused')return originalStart.call(this,event);
+      if(location.pathname==='/game/'&&!(event&&event.isTrusted))return originalStart.call(this,event);
+      history.replaceState({cf:1},'','/glavmenu/');
+      showMenu('mPlayChoice');
+    };
+  }
+  singleButton?.addEventListener('click',()=>{
+    history.pushState({cf:1},'','/game/');
+    if(originalStart)originalStart.call(startButton,new MouseEvent('click',{bubbles:true}));
+  });
+  backButton?.addEventListener('click',()=>showMenu('mMain'));
+
+  const currentShowMenu=showMenu;
+  showMenu=function(id){
+    const requested=id==='mPlayChoice'?'mMain':id;
+    const result=currentShowMenu.apply(this,[requested,...Array.prototype.slice.call(arguments,1)]);
+    picker.style.display=id==='mPlayChoice'?'flex':'none';
+    if(id==='mPlayChoice'){
+      ['mMain','mSet','mCase','mInv','mQ','mDonate','mMP','mJoin','mLobby','mFr'].forEach(k=>{const el=$(k);if(el)el.style.display='none'});
+      menu.style.display='flex';
+      setTimeout(()=>{if(typeof fitMenu==='function')fitMenu();picker.querySelector('button')?.focus()},0);
+    }
+    syncAccountControls();
+    return result;
+  };
+  const oldFitMenu=fitMenu;
+  fitMenu=function(){
+    oldFitMenu.apply(this,arguments);
+    if(picker.style.display==='none')return;
+    const w=picker.offsetWidth,h=picker.offsetHeight;if(!w||!h)return;
+    const fit=Math.max(.5,Math.min(1,innerWidth*.94/w,innerHeight*.92/h));
+    const deviceScale=document.body.classList.contains('mob')?Math.max(.65,Math.min(1,(+S.menuScale||85)/100)):1;
+    picker.style.transform='translate(-50%,-50%) scale('+Math.min(fit,deviceScale)+')';
+  };
+
+  // Keep chat unavailable in solo play; allow it only while a local network room is active.
+  const chatForm=$('cfChatForm');
+  const syncChatMode=()=>{
+    const enabled=typeof NET!=='undefined'&&!!NET.on;
+    document.body.classList.toggle('cf-multiplayer-chat',enabled);
+    if(!enabled&&chatForm&&!chatForm.hidden)$('cfChatClose')?.click();
+  };
+  syncChatMode();setInterval(syncChatMode,200);
+})();
+</script>
+</body></html>
