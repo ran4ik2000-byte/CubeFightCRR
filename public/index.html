@@ -396,22 +396,22 @@ body.creative #hp,body.creative #stw,body.creative #hh,body.creative #stL,body.c
   <header class="cf-settings-heading"><div><span class="cf-settings-kicker">ПРОФИЛЬ · ИГРА · УПРАВЛЕНИЕ</span><h1 id="cfSettingsTitle">Настройки</h1></div><p>Настрой CUBEFIGHT под себя</p></header>
   <div class="cf-settings-grid">
    <section class="cf-settings-section"><h2>Игровой процесс</h2>
-    <label><span>Чувствительность мыши <b id="vSens"></b></span><input type="range" id="sSens" min="0.3" max="3" step="0.1" value="1" aria-label="Чувствительность мыши"></label>
-    <label><span>Угол обзора <b id="vFov"></b></span><input type="range" id="sFov" min="60" max="100" step="1" value="75" aria-label="Угол обзора"></label>
-    <label id="phoneMenuScaleWrap"><span>Размер окон на телефоне <b id="vMenuScale"></b></span><input type="range" id="sMenuScale" min="65" max="100" step="5" value="85" aria-label="Размер окон на телефоне"></label>
+    <label><span>Чувствительность мыши <b id="vSens"></b></span><input type="range" id="sSens" data-default="1" min="0.3" max="3" step="0.1" value="1" aria-label="Чувствительность мыши"></label>
+    <label><span>Угол обзора <b id="vFov"></b></span><input type="range" id="sFov" data-default="75" min="60" max="100" step="1" value="75" aria-label="Угол обзора"></label>
+    <label id="phoneMenuScaleWrap"><span>Размер окон на телефоне <b id="vMenuScale"></b></span><input type="range" id="sMenuScale" data-default="85" min="65" max="100" step="5" value="85" aria-label="Размер окон на телефоне"></label>
    </section>
    <section class="cf-settings-section"><h2>Производительность</h2>
-    <label for="sFpsLimit"><span>Максимальная частота кадров</span><select id="sFpsLimit" aria-label="Максимальная частота кадров"><option value="120">До 120 FPS</option><option value="60">До 60 FPS</option><option value="0">Без ограничения</option></select></label>
+    <label for="sFpsLimit"><span>Максимальная частота кадров</span><select id="sFpsLimit" data-default="120" aria-label="Максимальная частота кадров"><option value="120">До 120 FPS</option><option value="60">До 60 FPS</option><option value="0">Без ограничения</option></select></label>
     <div id="cfFpsSettings" role="status" aria-live="polite"><span><b id="cfFpsValue">—</b> FPS</span><small id="cfFrameTime">Время кадра: —</small></div>
     <p class="cf-settings-note">120 FPS — верхний лимит. Фактическая частота зависит от экрана, браузера и мощности устройства.</p>
-    <label><span>Качество графики <b id="vGfx"></b></span><input type="range" id="sGfx" min="0" max="3" step="1" value="0" aria-label="Качество графики"></label>
-    <label><span>Дальность прорисовки <b id="vRd"></b></span><input type="range" id="sRd" min="0" max="12" step="1" value="0" aria-label="Дальность прорисовки"></label>
+    <label><span>Качество графики <b id="vGfx"></b></span><input type="range" id="sGfx" data-default="0" min="0" max="3" step="1" value="0" aria-label="Качество графики"></label>
+    <label><span>Дальность прорисовки <b id="vRd"></b></span><input type="range" id="sRd" data-default="0" min="0" max="12" step="1" value="0" aria-label="Дальность прорисовки"></label>
     <small id="gfxHint"></small>
    </section>
    <section class="cf-settings-section"><h2>Звук</h2>
-    <label><span>Общая громкость <b id="vVol"></b></span><input type="range" id="sVol" min="0" max="1" step="0.05" value="0.5" aria-label="Общая громкость"></label>
-    <label><span>Музыка <b id="vMus"></b></span><input type="range" id="sMus" min="0" max="1" step="0.05" value="1" aria-label="Громкость музыки"></label>
-    <label><span>Звуковые эффекты <b id="vSfx"></b></span><input type="range" id="sSfx" min="0" max="1" step="0.05" value="1" aria-label="Громкость звуковых эффектов"></label>
+    <label><span>Общая громкость <b id="vVol"></b></span><input type="range" id="sVol" data-default="0.5" min="0" max="1" step="0.05" value="0.5" aria-label="Общая громкость"></label>
+    <label><span>Музыка <b id="vMus"></b></span><input type="range" id="sMus" data-default="1" min="0" max="1" step="0.05" value="1" aria-label="Громкость музыки"></label>
+    <label><span>Звуковые эффекты <b id="vSfx"></b></span><input type="range" id="sSfx" data-default="1" min="0" max="1" step="0.05" value="1" aria-label="Громкость звуковых эффектов"></label>
    </section>
    <section class="cf-settings-section cf-settings-account"><h2>Аккаунт</h2>
     <div class="cf-current-nick">Текущий ник <b id="cfCurrentNickname">—</b></div>
@@ -421,7 +421,7 @@ body.creative #hp,body.creative #stw,body.creative #hh,body.creative #stL,body.c
     <p class="cf-settings-note">Следующая смена ника доступна через 3 дня.</p>
    </section>
   </div>
-  <footer class="cf-settings-actions"><button id="bLang">🌐 Язык: Русский</button><button id="bFps" type="button" aria-pressed="true"></button><button id="bBack">Назад в меню</button></footer>
+  <footer class="cf-settings-actions"><button id="bLang" type="button">🌐 Язык: Русский</button><button id="bFps" type="button" aria-pressed="true"></button><button id="cfResetSettings" class="cf-settings-reset" type="button" title="Вернуть игровые параметры по умолчанию">↺ Сбросить настройки</button><button id="bBack" type="button">Назад в меню</button><span id="cfSettingsResetStatus" class="cf-settings-reset-status" role="status" aria-live="polite"></span></footer>
  </div>
  <div class="panel" id="mQ" style="display:none"><h1>МЕНЮ</h1><button id="bQCase">Кейсы</button><button id="bQInv">Инвентарь</button><div style="opacity:.6;font-size:8px;text-align:center">E — закрыть и вернуться в игру</div></div>
  <div class="panel" id="mInv" style="display:none"><h1>ИНВЕНТАРЬ</h1><div id="iBal"></div><div id="iEq"></div><div id="iBar"><div id="iTabs"><button data-t="all" class="on">Все</button><button data-t="w">Мечи</button><button data-t="a">Броня</button><button data-t="f">Еда</button></div><button id="iSort"></button><button id="iDir">▼</button><button data-act="bdup" id="iDup"></button><button id="iMulti">☑ Выбрать для продажи</button></div><div id="iMBar"><button id="iAll">✔ Выделить все</button><button id="iNone">✖ Снять выделение</button><button id="iSellSel" disabled>💰 Продать выбранные</button><small>Клик по предмету — оставить / продать. Надетые, стартовые и еда не продаются.</small></div><div id="iMain"><div id="iGrid"></div><div id="iDet"></div></div><div style="opacity:.6;font-size:8px">Клик — выбрать · двойной клик — надеть · E — открыть инвентарь в игре</div><button id="bBackI">Назад</button></div>
@@ -4660,6 +4660,33 @@ body.mob #phoneMenuScaleWrap{display:flex;}
 })();
 </script>
 
+
+<script id="cf-settings-quick-actions">
+(()=>{
+  const reset=document.getElementById('cfResetSettings');
+  const status=document.getElementById('cfSettingsResetStatus');
+  if(!reset||!status)return;
+  const isEnglish=()=>/English/.test(document.getElementById('bLang')?.textContent||'');
+  const syncResetText=()=>{
+    const en=isEnglish();
+    reset.textContent=en?'↺ Reset settings':'↺ Сбросить настройки';
+    reset.title=en?'Restore game settings to their defaults':'Вернуть игровые параметры по умолчанию';
+  };
+  const languageButton=document.getElementById('bLang');
+  if(languageButton)languageButton.addEventListener('click',()=>setTimeout(syncResetText,0));
+  syncResetText();
+  reset.addEventListener('click',()=>{
+    document.querySelectorAll('#mSet input[type="range"][data-default],#mSet select[data-default]').forEach(control=>{
+      control.value=control.dataset.default;
+      control.dispatchEvent(new Event(control.tagName==='SELECT'?'change':'input',{bubbles:true}));
+    });
+    const fps=document.getElementById('bFps');
+    if(fps&&fps.getAttribute('aria-pressed')!=='true')fps.click();
+    status.textContent=isEnglish()?'Settings restored to defaults.':'Настройки возвращены к значениям по умолчанию.';
+  });
+})();
+</script>
+
 </body></html>
 
 <style id="cf-leaderboard-style">
@@ -4679,15 +4706,95 @@ body.mob #phoneMenuScaleWrap{display:flex;}
 
 
 <style id="cf-settings-redesign-style">
-#menu #mSet{width:min(1000px,calc(100vw - 32px))!important;max-height:calc(100dvh - 32px)!important;box-sizing:border-box;overflow:auto;overscroll-behavior:contain;display:flex;flex-direction:column;gap:14px;padding:clamp(16px,2vw,22px)!important;background:linear-gradient(145deg,#182019f5,#101510f8 60%,#0a0e0bf8)!important;border:2px solid #52734a!important;box-shadow:inset 0 0 0 1px #ffffff16,0 18px 54px #000c!important;color:#f2f6ef!important}
-.cf-settings-heading{display:flex;justify-content:space-between;align-items:flex-end;gap:16px;padding-bottom:14px;border-bottom:1px solid #ffffff20}.cf-settings-kicker{color:#9ad27e;font:700 11px/1.5 system-ui,Arial,sans-serif;letter-spacing:1.6px}.cf-settings-heading h1{margin:5px 0 0!important;color:#f4f6ef!important;font:700 clamp(24px,3vw,32px)/1.2 system-ui,Arial,sans-serif!important;letter-spacing:0;text-shadow:none!important}.cf-settings-heading p{margin:0;color:#bdc7b9;font:14px/1.5 system-ui,Arial,sans-serif}
-.cf-settings-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;align-items:stretch}.cf-settings-section{display:flex;flex-direction:column;gap:10px;min-width:0;padding:12px;background:linear-gradient(145deg,#202a21,#171d18);border:1px solid #ffffff20;box-shadow:inset 0 1px #ffffff0d}.cf-settings-section h2{margin:0;padding-bottom:10px;border-bottom:1px solid #ffffff19;color:#c3f2ac;font:700 16px/1.35 system-ui,Arial,sans-serif;letter-spacing:.2px}
-#menu #mSet .cf-settings-section label{display:flex;flex-direction:column;gap:6px;margin:0;color:#e8eee4;font:14px/1.45 system-ui,Arial,sans-serif}#menu #mSet #phoneMenuScaleWrap{display:none}body.mob #menu #mSet #phoneMenuScaleWrap{display:flex}#menu #mSet label span{display:flex;align-items:center;justify-content:space-between;gap:10px}#menu #mSet label b{color:#ffe18a;font-weight:700;white-space:nowrap}#menu #mSet input[type=range]{width:100%;height:24px;margin:0;accent-color:#8acb70;cursor:pointer}#menu #mSet input[type=range]:focus-visible,#menu #mSet select:focus-visible,#menu #mSet button:focus-visible,#menu #mSet input[type=text]:focus-visible{outline:3px solid #a9df8c;outline-offset:3px}
-#menu #mSet select,#menu #mSet input[type=text]{width:100%;min-height:46px;padding:9px 12px;border:1px solid #60715c;border-radius:4px;background:#0d130e;color:#f6f8f4;font:15px/1.4 system-ui,Arial,sans-serif}#menu #mSet .cf-settings-note{margin:0;color:#b9c4b5;font:14px/1.5 system-ui,Arial,sans-serif}#menu #mSet #gfxHint{color:#aab7a5;font:14px/1.5 system-ui,Arial,sans-serif;opacity:1!important}#cfFpsSettings{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:12px 14px;background:#0b110c;border:1px solid #4f7148;color:#bdf1a0;font:700 16px/1.4 system-ui,Arial,sans-serif}#cfFpsSettings small{color:#b9c4b5;font:14px/1.4 system-ui,Arial,sans-serif}#cfFpsValue{font-size:22px;color:#f4f7ee}
-.cf-settings-account{grid-column:auto;display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);align-content:start;gap:10px}.cf-settings-account h2,.cf-settings-account>.cf-settings-note{grid-column:1/-1}.cf-current-nick{display:flex;justify-content:space-between;align-items:center;gap:12px;min-height:44px;box-sizing:border-box;padding:9px 12px;background:#0d130e;border:1px solid #ffffff1a;color:#c4cec0;font:14px/1.45 system-ui,Arial,sans-serif;white-space:nowrap}.cf-current-nick b{color:#ffe18a;overflow-wrap:anywhere}.cf-settings-account label small{color:#abb6a7;font-size:14px}#menu #mSet #cfChangeNickname{min-height:46px;padding:10px 14px!important;background:linear-gradient(180deg,#518849,#356b32)!important;border:1px solid #7baa6f!important;color:white;font:700 14px/1.4 system-ui,Arial,sans-serif!important}#cfNicknameStatus{min-height:21px;margin:0;color:#c8d4c3;font:14px/1.5 system-ui,Arial,sans-serif;align-self:center}#cfNicknameStatus[data-tone=error]{color:#ffaaa1}#cfNicknameStatus[data-tone=success]{color:#a7f58a}
-.cf-settings-actions{display:flex;flex-wrap:wrap;gap:10px;padding-top:4px}#menu #mSet .cf-settings-actions button{flex:1 1 180px;min-height:48px!important;padding:10px 12px!important;background:#242c25!important;border:1px solid #657360!important;color:#f4f6ef;font:700 14px/1.4 system-ui,Arial,sans-serif!important;box-shadow:none!important;text-shadow:none!important}#menu #mSet .cf-settings-actions #bBack{background:linear-gradient(180deg,#537f48,#345a30)!important;border-color:#719565!important}
-@media(max-width:700px){#menu #mSet{width:calc(100vw - 20px)!important;max-height:calc(100dvh - 20px)!important;gap:12px;padding:14px!important}.cf-settings-heading{align-items:flex-start;flex-direction:column;gap:4px;padding-bottom:10px}.cf-settings-grid{grid-template-columns:1fr;gap:10px}.cf-settings-section{gap:12px;padding:13px}.cf-settings-section h2{font-size:15px}.cf-settings-account{grid-column:auto;display:flex;flex-direction:column;grid-template-columns:1fr}.cf-settings-actions{gap:8px}.cf-settings-actions button{flex:1 1 100%!important;min-height:44px!important}#cfFpsSettings{align-items:flex-start;flex-direction:column;gap:4px}}
+
+/* CUBEFIGHT settings: pixel-world frame, readable controls, contained scrolling. */
+#menu #mSet{
+  --set-ink:#f2f6ed;--set-muted:#c1cbb9;--set-green:#a4e27d;--set-gold:#ffe27a;
+  width:min(980px,calc(100vw - 24px))!important;max-width:calc(100vw - 24px)!important;
+  height:min(880px,calc(100vh - 24px));height:min(880px,calc(100dvh - 24px - env(safe-area-inset-top,0px) - env(safe-area-inset-bottom,0px)))!important;
+  max-height:calc(100vh - 24px)!important;max-height:calc(100dvh - 24px - env(safe-area-inset-top,0px) - env(safe-area-inset-bottom,0px))!important;
+  min-width:0;min-height:0;box-sizing:border-box;flex:0 1 auto;overflow:hidden;
+  overscroll-behavior:contain;-webkit-overflow-scrolling:touch;scrollbar-gutter:stable;
+  display:flex;flex-direction:column;gap:16px;padding:clamp(14px,2.4vw,24px)!important;
+  background:linear-gradient(150deg,#1b261bfa,#111811fa 58%,#0b100dfa)!important;
+  border:3px solid #496a3f!important;outline:1px solid #a9de704a;outline-offset:3px;
+  box-shadow:inset 0 0 0 1px #ffffff18,0 18px 58px #000d,0 0 34px #6caa3530!important;
+  color:var(--set-ink)!important;transform:none!important;
+}
+#menu #mSet *{box-sizing:border-box;min-width:0}
+#menu #mSet .cf-settings-heading{display:flex;align-items:flex-end;justify-content:space-between;gap:16px;padding:2px 2px 14px;border-bottom:2px solid #799f4b66}
+#menu #mSet .cf-settings-kicker{display:inline-block;color:var(--set-green);font:700 10px/1.5 'Press Start 2P','Courier New',monospace;letter-spacing:.25px;text-shadow:1px 1px #000}
+#menu #mSet .cf-settings-heading h1{margin:10px 0 0!important;color:#f3f6ee!important;font:700 clamp(24px,3vw,34px)/1.15 system-ui,'Segoe UI',Arial,sans-serif!important;letter-spacing:.02em;text-align:left;text-shadow:3px 3px 0 #263b22,0 0 18px #82c75a55!important;filter:none!important}
+#menu #mSet .cf-settings-heading p{max-width:34ch;margin:0;color:var(--set-muted);font:14px/1.5 system-ui,'Segoe UI',Arial,sans-serif;text-align:right}
+#menu #mSet .cf-settings-grid{display:grid;flex:1 1 auto;min-height:0;overflow-x:hidden;overflow-y:auto;overscroll-behavior:contain;-webkit-overflow-scrolling:touch;scrollbar-gutter:stable;scrollbar-width:thin;scrollbar-color:#83b65f #111811;align-content:start;grid-template-columns:repeat(2,minmax(0,1fr));align-items:start;gap:12px;padding:0 4px 4px 0}
+#menu #mSet .cf-settings-grid::-webkit-scrollbar{width:8px}
+#menu #mSet .cf-settings-grid::-webkit-scrollbar-track{background:#111811;border-left:1px solid #ffffff12}
+#menu #mSet .cf-settings-grid::-webkit-scrollbar-thumb{background:#709b54;border:2px solid #111811;border-radius:0}
+#menu #mSet .cf-settings-grid::-webkit-scrollbar-thumb:hover{background:#a4d874}
+#menu #mSet .cf-settings-section{display:flex;flex-direction:column;gap:12px;min-width:0;padding:15px;background:linear-gradient(145deg,#202b20f2,#151c16f2);border:1px solid #71905b8c;box-shadow:inset 0 1px #ffffff12,3px 3px 0 #070b07;}
+#menu #mSet .cf-settings-section h2{display:flex;align-items:center;gap:10px;margin:0;padding:0 0 10px;border-bottom:1px solid #ffffff24;color:#c6f0a7;font:700 15px/1.35 system-ui,'Segoe UI',Arial,sans-serif;letter-spacing:.02em}
+#menu #mSet .cf-settings-section h2:before{content:"";width:8px;height:16px;flex:0 0 8px;background:#83bd56;box-shadow:2px 2px 0 #304728}
+#menu #mSet .cf-settings-section label{display:flex;flex-direction:column;gap:7px;margin:0;color:#edf2e9;font:14px/1.45 system-ui,'Segoe UI',Arial,sans-serif}
+#menu #mSet .cf-settings-section label span{display:flex;align-items:center;justify-content:space-between;gap:10px}
+#menu #mSet .cf-settings-section label b{padding:3px 7px;background:#302d1a;border:1px solid #85753c;color:#ffe27a;font:700 12px/1.4 system-ui,'Segoe UI',Arial,sans-serif;white-space:nowrap}
+#menu #mSet input[type=range]{display:block;width:100%;height:34px;margin:0;padding:0;background:transparent;accent-color:#94d66d;cursor:pointer;touch-action:pan-y}
+#menu #mSet input[type=range]::-webkit-slider-runnable-track{height:8px;background:linear-gradient(90deg,#477a3a,#9bd56d);border:1px solid #243a20;border-radius:0}
+#menu #mSet input[type=range]::-webkit-slider-thumb{width:20px;height:20px;margin-top:-7px;appearance:none;background:#f6d76c;border:3px solid #1b2519;border-radius:0;box-shadow:0 0 0 1px #d9b650}
+#menu #mSet input[type=range]::-moz-range-track{height:8px;background:linear-gradient(90deg,#477a3a,#9bd56d);border:1px solid #243a20;border-radius:0}
+#menu #mSet input[type=range]::-moz-range-thumb{width:16px;height:16px;background:#f6d76c;border:3px solid #1b2519;border-radius:0;box-shadow:0 0 0 1px #d9b650}
+#menu #mSet select,#menu #mSet input[type=text]{width:100%;min-height:48px;padding:10px 12px;background:#0c120d;border:1px solid #758d69;border-radius:0;color:#f5f7f1;font:15px/1.4 system-ui,'Segoe UI',Arial,sans-serif}
+#menu #mSet select{cursor:pointer}
+#menu #mSet input[type=range]:focus-visible,#menu #mSet select:focus-visible,#menu #mSet button:focus-visible,#menu #mSet input[type=text]:focus-visible{outline:3px solid #ffe27a;outline-offset:3px;z-index:2}
+#menu #mSet .cf-settings-note{margin:0;color:#c1cbb9;font:13px/1.55 system-ui,'Segoe UI',Arial,sans-serif}
+#menu #mSet #phoneMenuScaleWrap{display:none}
+body.mob #menu #mSet #phoneMenuScaleWrap{display:flex}
+#menu #mSet #gfxHint{color:#d0d8ca;font:13px/1.5 system-ui,'Segoe UI',Arial,sans-serif;opacity:1!important}
+#menu #mSet #cfFpsSettings{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:12px 14px;background:#0c140d;border:1px solid #709c58;color:#c9f1aa;font:700 15px/1.4 system-ui,'Segoe UI',Arial,sans-serif}
+#menu #mSet #cfFpsSettings small{color:#c1cbb9;font:13px/1.4 system-ui,'Segoe UI',Arial,sans-serif}
+#menu #mSet #cfFpsValue{font-size:22px;color:#fff4d0}
+#menu #mSet .cf-settings-account{grid-column:1/-1;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));align-content:start;gap:12px}
+#menu #mSet .cf-settings-account h2,#menu #mSet .cf-settings-account>.cf-settings-note{grid-column:1/-1}
+#menu #mSet .cf-current-nick{display:flex;justify-content:space-between;align-items:center;gap:12px;min-height:48px;padding:10px 12px;background:#0c120d;border:1px solid #ffffff2b;color:#d4ddce;font:14px/1.45 system-ui,'Segoe UI',Arial,sans-serif;white-space:normal;overflow-wrap:anywhere}
+#menu #mSet .cf-current-nick b{color:#ffe27a;text-align:right;overflow-wrap:anywhere}
+#menu #mSet .cf-settings-account label small{color:#c1cbb9;font:13px/1.45 system-ui,'Segoe UI',Arial,sans-serif}
+#menu #mSet #cfChangeNickname{min-height:48px;padding:10px 14px!important;background:var(--tex-moss,#356e31) 0 0/64px 64px!important;border:2px solid #0a1108!important;box-shadow:inset 2px 2px #ffffff35,inset -2px -2px #0007,3px 3px 0 #070b07!important;color:white;font:700 13px/1.4 system-ui,'Segoe UI',Arial,sans-serif!important;text-shadow:1px 1px #000!important}
+#menu #mSet #cfNicknameStatus{grid-column:1/-1;min-height:0;margin:0;color:#d6e2d0;font:13px/1.5 system-ui,'Segoe UI',Arial,sans-serif;overflow-wrap:anywhere}
+#menu #mSet #cfNicknameStatus[data-tone=error]{color:#ffaaa1}
+#menu #mSet #cfNicknameStatus[data-tone=success]{color:#b3f190}
+#menu #mSet .cf-settings-actions{position:relative;bottom:auto;z-index:5;display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px;margin:0 calc(-1 * clamp(14px,2.4vw,24px));padding:12px clamp(14px,2.4vw,24px) 2px;background:linear-gradient(180deg,#111811f0 0%,#101610 38%);border-top:1px solid #6f8e5a88;box-shadow:0 -8px 18px #05080599}
+#menu #mSet .cf-settings-actions button{min-width:0;min-height:48px!important;padding:9px 10px!important;background:#303a2f!important;border:2px solid #101610!important;box-shadow:inset 2px 2px #ffffff30,inset -2px -2px #0008,2px 2px 0 #070b07!important;color:#f4f7ef!important;font:700 12px/1.4 system-ui,'Segoe UI',Arial,sans-serif!important;letter-spacing:0;text-shadow:1px 1px #000!important;white-space:normal;overflow-wrap:anywhere}
+#menu #mSet .cf-settings-actions #bFps{background:var(--tex-copper,#8a552e) 0 0/64px 64px!important}
+#menu #mSet .cf-settings-actions #cfResetSettings{background:#323b2d!important;border-color:#77865e!important}
+#menu #mSet .cf-settings-actions #bBack{background:var(--tex-moss,#356e31) 0 0/64px 64px!important;border-color:#78975e!important}
+#menu #mSet .cf-settings-reset-status{grid-column:1/-1;min-height:0;margin:0;color:#b9ef95;font:13px/1.45 system-ui,'Segoe UI',Arial,sans-serif;overflow-wrap:anywhere}
+@media(min-width:1000px){
+ #menu #mSet .cf-settings-grid{grid-template-columns:repeat(3,minmax(0,1fr));}
+ #menu #mSet .cf-settings-account{grid-template-columns:repeat(3,minmax(0,1fr));align-items:end;}
+}
+@media(max-width:700px){
+ #menu #mSet{width:calc(100vw - 20px)!important;max-width:calc(100vw - 20px)!important;max-height:calc(100vh - 20px)!important;max-height:calc(100dvh - 20px - env(safe-area-inset-top,0px) - env(safe-area-inset-bottom,0px))!important;gap:12px;padding:14px!important}
+ #menu #mSet .cf-settings-heading{align-items:flex-start;flex-direction:column;gap:5px;padding-bottom:10px}
+ #menu #mSet .cf-settings-heading p{text-align:left}
+ #menu #mSet .cf-settings-grid{grid-template-columns:1fr;gap:10px}
+ #menu #mSet .cf-settings-section{gap:10px;padding:12px}
+ #menu #mSet .cf-settings-section h2{font-size:14px}
+ #menu #mSet .cf-settings-account{grid-column:auto;display:flex;flex-direction:column;gap:10px}
+ #menu #mSet .cf-settings-actions{grid-template-columns:repeat(2,minmax(0,1fr));gap:7px;margin:0 -14px;padding:10px 14px 2px}
+ #menu #mSet .cf-settings-actions button{min-height:46px!important;padding:8px 6px!important;font-size:12px!important}
+ #menu #mSet #cfFpsSettings{align-items:flex-start;flex-direction:column;gap:3px}
+}
+@media(max-width:360px){
+ #menu #mSet .cf-settings-kicker{font-size:8px}
+ #menu #mSet .cf-settings-actions button{font-size:11px!important}
+}
+@media(max-height:520px) and (min-width:701px){
+ #menu #mSet{gap:10px;padding:12px!important}
+ #menu #mSet .cf-settings-grid{gap:8px}
+ #menu #mSet .cf-settings-section{gap:8px;padding:10px}
+ #menu #mSet .cf-settings-actions{padding-top:8px}
+}
 @media(prefers-reduced-motion:reduce){#menu #mSet *,#fpsBox{scroll-behavior:auto!important;transition:none!important;animation:none!important}}
+
 </style>
 
 <style id="cf-cloud-routes-style">
