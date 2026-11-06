@@ -326,12 +326,39 @@ button:disabled{filter:grayscale(.7) brightness(.7)}
 #bossF{max-width:100%!important}
 body.creative #hp,body.creative #stw,body.creative #hh,body.creative #stL,body.creative #xp{display:none!important}
 </style>
+
+<style id="cf-local-chat-style">
+#cfChatFeed{position:fixed;left:calc(14px + env(safe-area-inset-left,0px));top:50%;transform:translateY(-50%);z-index:100;display:flex;flex-direction:column;gap:7px;width:min(320px,32vw);max-height:52vh;overflow:hidden;pointer-events:none;font:600 13px/1.45 system-ui,"Segoe UI",Arial,sans-serif}
+.cf-chat-line{padding:8px 10px;background:#10170feF;border:2px solid #050705;border-left:4px solid #88d25f;box-shadow:inset 2px 2px #ffffff18,3px 3px #0008;color:#f4f7ef;text-shadow:1px 1px #000;overflow-wrap:anywhere;transition:opacity .35s}
+.cf-chat-line b{color:#ffe27a;margin-right:5px}
+#cfChatForm{position:fixed;left:calc(14px + env(safe-area-inset-left,0px));top:calc(50% + 88px);transform:none;z-index:120;width:min(430px,calc(100vw - 28px));padding:12px;pointer-events:auto;background:linear-gradient(145deg,#182219f5,#0a100cf5),var(--tex-stone,#39363e) 0 0/64px 64px;border:3px solid #050605;box-shadow:inset 3px 3px #ffffff2a,inset -3px -3px #000b,0 12px 34px #000c;color:#fff}
+#cfChatForm[hidden]{display:none!important}
+body.cf-chat-open #cfChatFeed{visibility:hidden}
+#cfChatHint{margin:0 0 8px;color:#c9e8b6;font:9px/1.6 'Press Start 2P','Courier New',monospace;text-shadow:2px 2px #000}
+.cf-chat-compose{display:flex;align-items:stretch;gap:6px}
+#cfChatInput{flex:1 1 auto;width:0;min-width:0;min-height:46px;padding:9px 10px;background:#080d09;border:2px solid #6c885b;border-radius:0;color:#fff;font:15px/1.4 system-ui,'Segoe UI',Arial,sans-serif;outline:none}
+#cfChatInput:focus-visible{outline:3px solid #ffe27a;outline-offset:2px}
+#cfChatForm button{min-height:46px;padding:8px 10px!important;background:var(--tex-moss,#2f6b2a) 0 0/64px 64px!important;border:3px solid #050605!important;box-shadow:inset 2px 2px #ffffff44,inset -2px -2px #0009!important;color:#fff!important;font:700 11px/1.4 system-ui,'Segoe UI',Arial,sans-serif!important;text-shadow:1px 1px #000!important}
+#cfChatForm #cfChatClose{flex:0 0 44px;width:44px;padding:0!important;background:var(--tex-redstone,#a82a22) 0 0/64px 64px!important;font-size:22px!important}
+#mob #bChat{right:calc(8px + var(--sr));top:calc(112px + var(--st));width:44px;height:44px;font-size:19px!important}
+#mob #bChat:focus-visible{outline:3px solid #ffe27a;outline-offset:3px}
+@media(max-width:700px){
+ #cfChatFeed{left:calc(12px + env(safe-area-inset-left,0px));width:min(280px,calc(100vw - 24px));max-height:42vh;font-size:12px}
+ #cfChatForm{left:calc(10px + env(safe-area-inset-left,0px));top:calc(50% + 82px);transform:none;width:min(430px,calc(100vw - 20px));padding:9px}
+ #cfChatHint{font-size:8px}
+ #cfChatInput{min-height:48px;font-size:16px}
+ #cfChatForm button{min-height:48px!important;padding:6px 7px!important;font-size:10px!important}
+ #cfChatForm #cfChatClose{flex-basis:44px;width:44px;font-size:20px!important}
+}
+@media(prefers-reduced-motion:reduce){.cf-chat-line{transition:none!important}}
+</style>
+
 </head><body>
 <div id="hud">
  <div id="hp"></div><div id="stw"><div id="st"></div></div>
  <div id="info"></div><div id="cross"></div><div id="vig"></div><div id="dmg"></div><div id="lowv"></div><div id="tsv"></div><div id="fire"></div><div id="hit"></div><div id="boss"><div id="bossT">ВОЛНА 1</div><div id="bossB"><i id="bossF"></i></div></div><div id="bot"><div id="hh"><div id="hearts"></div><div id="hung"></div></div><div id="stL">ВЫНОСЛИВОСТЬ</div><div id="xp"><i id="xpF"></i></div><div id="bar"></div></div><div id="ban"></div>
  <div id="buffs"></div><div id="tr"><div id="coins"></div><div id="arm"></div><div id="wx"></div></div>
- <div id="ind"></div><div id="combo"></div><div id="tip"></div><canvas id="radar" width="140" height="140"></canvas><div id="sysChat"></div>
+ <div id="ind"></div><div id="combo"></div><div id="tip"></div><canvas id="radar" width="140" height="140"></canvas><div id="sysChat"></div><div id="cfChatFeed" aria-live="polite" aria-label="Чат игры"></div><form id="cfChatForm" hidden autocomplete="off"><div id="cfChatHint">ЧАТ · Enter — отправить · Esc — закрыть</div><div class="cf-chat-compose"><input id="cfChatInput" type="text" maxlength="160" autocomplete="off" placeholder="Напиши сообщение…" aria-label="Сообщение в чате"><button id="cfChatSend" type="submit">Отправить</button><button id="cfChatClose" type="button" aria-label="Закрыть чат">×</button></div></form>
 </div>
 <div id="cs">
  <div id="csBox">
@@ -3020,6 +3047,7 @@ function hostData(conn,m){
   NET.gl=Object.values(NET.peers).map(q=>q.g);
   conn.send({t:'welcome',id});mpLobbyBc();return}
  const q=NET.peers[conn._id];if(!q)return;
+ if(m.t==='chat'){const text=String(m.m||'').trim().slice(0,160);if(text){if(window.cfLocalChatMessage)window.cfLocalChatMessage(q.name,text);for(const id in NET.peers)if(+id!==conn._id)NET.sendTo(id,{t:'userchat',n:q.name,m:text})}return}
  if(m.t==='p'){const g=q.g;g.x=+m.x||0;g.y=+m.y||0;g.z=+m.z||0;g.yaw=+m.yw||0;g.pitch=+m.pt||0;g.hp=+m.hp||0;g.sw=+m.sw||0;g.swd=+m.sd||.25;g.sd=m.sdr||1;g.rc=String(m.rc||'c');g.hd=String(m.hd||'').slice(0,24).replace(/[^\w:.-]/g,'');g.domeT=Math.max(0,Math.min(DOME_DUR,+m.dome||0));g.inv=String(m.inv||'').slice(0,200).replace(/[^\w:.,|-]/g,'');
   g.rv=(+m.rv||0)-1;const dn=!!m.dn;
    if(dn&&!g.down){if(performance.now()>(g.rvGrace||0)){g.down=true;g.rvT=0;NET.deathSay(q.name,String(m.dc||'').slice(0,40));NET.checkOver()}}else if(!dn)g.down=false}
@@ -3044,7 +3072,7 @@ function hostLeft(conn){
 function guestData(m){
  if(!m||typeof m!=='object')return;
  switch(m.t){
-  case 'welcome':NET.id=m.id;mpShowLobby();break;
+  case 'userchat':if(window.cfLocalChatMessage)window.cfLocalChatMessage(m.n,m.m);break;   case 'welcome':NET.id=m.id;mpShowLobby();break;
   case 'full':mpJMsg(m.why||'Не удалось войти');mpLeave();showMenu('mJoin');break;
   case 'lobby':NET.players=m.pl;mpRenderLobby();break;
   case 'rsc':NET.rsCnt=[m.a,m.b];break;
@@ -3846,7 +3874,7 @@ body #menu #frMe button{width:auto;font-size:9px!important;padding:6px 10px!impo
 var B=document.body,doc=document.documentElement;
 function $(id){return document.getElementById(id)}
 var M=document.createElement('div');M.id='mob';M.setAttribute('data-net','0');M.setAttribute('data-spec','0');M.setAttribute('data-dead','0');
-M.innerHTML='<div id="mLook"></div><div id="mJoy"><i id="mJb"><b id="mJk"></b></i></div><button id="bAtk">⚔</button><button id="bJmp">▲</button><button id="bUse">✋</button><button id="bDrp">Q</button><button id="bRev">✚</button><button id="bRun">🏃</button><button id="bPau">☰</button><button id="bInvB">🎒</button><button id="bSpL">◀</button><button id="bSpR">▶</button>';
+M.innerHTML='<div id="mLook"></div><div id="mJoy"><i id="mJb"><b id="mJk"></b></i></div><button id="bAtk">⚔</button><button id="bJmp">▲</button><button id="bUse">✋</button><button id="bDrp">Q</button><button id="bRev">✚</button><button id="bRun">🏃</button><button id="bPau">☰</button><button id="bInvB">🎒</button><button id="bChat" aria-label="Открыть чат" title="Чат">💬</button><button id="bSpL">◀</button><button id="bSpR">▶</button>';
 B.appendChild(M);
 var R=document.createElement('div');R.id='rot';R.textContent='📱↻ Поверните телефон горизонтально';B.appendChild(R);
 var D=document.createElement('div');D.id='devSel';
@@ -4687,6 +4715,31 @@ body.mob #phoneMenuScaleWrap{display:flex;}
     if(fps&&fps.getAttribute('aria-pressed')!=='true')fps.click();
     status.textContent=isEnglish()?'Settings restored to defaults.':'Настройки возвращены к значениям по умолчанию.';
   });
+})();
+</script>
+
+
+<script id="cf-local-chat-script">
+(()=>{
+ const feed=document.getElementById('cfChatFeed'),form=document.getElementById('cfChatForm'),input=document.getElementById('cfChatInput');
+ const menu=document.getElementById('menu'),mobileButton=document.getElementById('bChat');
+ if(!feed||!form||!input)return;
+ let opened=false;
+ const updateLanguage=()=>{const en=/English/.test(document.getElementById('bLang')?.textContent||'');document.getElementById('cfChatHint').textContent=en?'CHAT · Enter to send · Esc to close':'ЧАТ · Enter — отправить · Esc — закрыть';input.placeholder=en?'Type a message…':'Напиши сообщение…';input.setAttribute('aria-label',en?'Chat message':'Сообщение в чате');document.getElementById('cfChatSend').textContent=en?'Send':'Отправить';document.getElementById('cfChatClose').setAttribute('aria-label',en?'Close chat':'Закрыть чат');if(mobileButton)mobileButton.setAttribute('aria-label',en?'Open chat':'Открыть чат')};
+ document.getElementById('bLang')?.addEventListener('click',()=>setTimeout(updateLanguage,0));updateLanguage();
+ const close=()=>{opened=false;form.hidden=true;document.body.classList.remove('cf-chat-open');input.blur()};
+ const open=()=>{if(menu&&menu.style.display!=='none')return;opened=true;form.hidden=false;document.body.classList.add('cf-chat-open');input.value='';input.focus()};
+ const add=(name,text)=>{const row=document.createElement('div');row.className='cf-chat-line';const who=document.createElement('b');who.textContent=String(name||'Игрок').slice(0,16)+':';const body=document.createElement('span');body.textContent=String(text||'').slice(0,160);row.append(who,body);feed.appendChild(row);while(feed.children.length>6)feed.firstChild.remove();setTimeout(()=>{row.style.opacity='0';setTimeout(()=>row.remove(),400)},8000)};
+ window.cfLocalChatMessage=add;
+ const playerName=()=>{try{if(typeof NET!=='undefined'&&NET.on&&NET.name)return String(NET.name).slice(0,16)}catch(e){}try{return String(window.cfDisplayName||localStorage.getItem('cf_name')||'Игрок').slice(0,16)}catch(e){return 'Игрок'}};
+ const send=()=>{const text=input.value.trim().slice(0,160);if(!text){close();return}const name=playerName();add(name,text);try{if(typeof NET!=='undefined'&&NET.on){if(NET.role==='host')NET.bc({t:'userchat',n:name,m:text});else NET.toHost({t:'chat',m:text})}}catch(e){}close()};
+ form.addEventListener('submit',e=>{e.preventDefault();send()});
+ document.getElementById('cfChatClose').addEventListener('click',close);
+ mobileButton?.addEventListener('click',()=>opened?close():open());
+ document.addEventListener('keydown',e=>{
+  if(opened){if(e.code==='Escape'){e.preventDefault();e.stopImmediatePropagation();close();return}if(e.code==='Enter'&&!e.isComposing){e.preventDefault();e.stopImmediatePropagation();send();return}e.stopImmediatePropagation();return}
+  if(e.code==='KeyT'&&!e.repeat&&menu&&menu.style.display==='none'){e.preventDefault();e.stopImmediatePropagation();open()}
+ },true);
 })();
 </script>
 
