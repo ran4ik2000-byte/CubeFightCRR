@@ -1,8 +1,9 @@
 const SESSION_COOKIE = 'cf_admin_session';
 const SESSION_TTL = 8 * 60 * 60;
-const PASSWORD_ITERATIONS = 210000;
-const ALLOWED_PACKS = ['50','70','100','150','170','200','250','300','500','800','1000','1500','2000','2500','3000'];
+const PASSWORD_ITERATIONS = 100000;
 const DEFAULT_PRICES = {50:19,70:25,100:35,150:49,170:55,200:63,250:75,300:89,500:139,800:209,1000:249,1500:359,2000:459,2500:549,3000:629};
+const DEFAULT_CASE_PRICES = {weapon:35,armor:40,food:15,utility:65};
+const CASE_KEYS = ['weapon','armor','food','utility'];
 const encoder = new TextEncoder();
 
 function json(data, status=200, extra={}) {
@@ -62,7 +63,7 @@ async function sb(env,path,options={}) {
   return data;
 }
 async function getSettings(env) {
-  const rows=await sb(env,'/rest/v1/cf_admin_settings?select=id,password_hash,password_salt,session_version,shop_prices,telegram_url&id=eq.true');
+  const rows=await sb(env,'/rest/v1/cf_admin_settings?select=id,password_hash,password_salt,session_version,shop_prices,case_prices,telegram_url&id=eq.true');
   return Array.isArray(rows)?rows[0]||null:null;
 }
 async function patchSettings(env,patch,extraFilter='') {
@@ -140,9 +141,14 @@ async function adminApi(request,env,url) {
   if(path==='/api/admin/users'&&method==='GET'){
     const offset=Math.max(0,Math.min(100000,Number(url.searchParams.get('offset'))||0));
     const limit=Math.max(1,Math.min(200,Number(url.searchParams.get('limit'))||100));
-    const rows=await sb(env,`/rest/v1/cf_player_profiles?select=user_id,display_name,friend_code,save_data,account_blocked,local_game_blocked,created_at&order=created_at.desc&limit=${limit+1}&offset=${offset}`);
+    const rows=await sb(env,'/rest/v1/rpc/cf_admin_list_users',{method:'POST',body:JSON.stringify({p_offset:offset,p_limit:limit+1})});
     const page=Array.isArray(rows)?rows:[];const hasMore=page.length>limit;
-    return json({users:page.slice(0,limit).map(p=>({id:p.user_id,nickname:p.display_name||p.save_data?.cf_name||'Игрок',coins:Number(p.save_data?.cf?.coins)||0,accountBlocked:!!p.account_blocked,localGameBlocked:!!p.local_game_blocked,createdAt:p.created_at})),hasMore,nextOffset:offset+limit});
+    return json({users:page.slice(0,limit).map(p=>({id:p.user_id,email:p.email||'',nickname:p.display_name||p.save_data?.cf_name||'Игрок',coins:Number(p.save_data?.cf?.coins)||0,accountBlocked:!!p.account_blocked,localGameBlocked:!!p.local_game_blocked,createdAt:p.created_at})),hasMore,nextOffset:offset+limit});
+  }
+  if(path==='/api/admin/audit'&&method==='GET'){
+    const limit=Math.max(1,Math.min(100,Number(url.searchParams.get('limit'))||50));
+    const rows=await sb(env,`/rest/v1/cf_admin_audit?select=id,action,target_user_id,details,created_at&order=created_at.desc&limit=${limit}`);
+    return json(Array.isArray(rows)?rows:[]);
   }
   const m=path.match(/^\/api\/admin\/users\/([^/]+)\/(account-block|local-block|coins|items)$/);
   if(m&&method==='POST'){
@@ -175,12 +181,18 @@ async function adminApi(request,env,url) {
       return json({ok:true,result});
     }
   }
-  if(path==='/api/admin/settings'&&method==='GET')return json({shopPrices:session.settings.shop_prices||DEFAULT_PRICES,telegramUrl:session.settings.telegram_url||''});
+  if(path==='/api/admin/settings'&&method==='GET')return json({shopPrices:session.settings.shop_prices||DEFAULT_PRICES,casePrices:session.settings.case_prices||DEFAULT_CASE_PRICES,telegramUrl:session.settings.telegram_url||''});
   if(path==='/api/admin/settings'&&method==='POST'){
     const body=await parseBody(request),patch={};
     if(body.shopPrices!==undefined){
-      if(!body.shopPrices||typeof body.shopPrices!=='object'||Array.isArray(body.shopPrices)||ALLOWED_PACKS.some(k=>!Number.isInteger(Number(body.shopPrices[k]))||Number(body.shopPrices[k])<0||Number(body.shopPrices[k])>1000000))return json({error:'Укажите целую цену для каждого набора.'},400);
-      patch.shop_prices=Object.fromEntries(ALLOWED_PACKS.map(k=>[k,Number(body.shopPrices[k])]));
+      const entries=body.shopPrices&&typeof body.shopPrices==='object'&&!Array.isArray(body.shopPrices)?Object.entries(body.shopPrices):[];
+      if(!entries.length||entries.length>50||entries.some(([coins,price])=>!/^\d{1,9}$/.test(coins)||Number(coins)<1||Number(coins)>100000000||!Number.isInteger(Number(price))||Number(price)<0||Number(price)>1000000))return json({error:'Добавьте от 1 до 50 пакетов: монеты 1–100 000 000, цена 0–1 000 000.'},400);
+      patch.shop_prices=Object.fromEntries(entries.map(([coins,price])=>[String(Number(coins)),Number(price)]).sort((a,b)=>Number(a[0])-Number(b[0])));
+    }
+    if(body.casePrices!==undefined){
+      const values=body.casePrices;
+      if(!values||typeof values!=='object'||Array.isArray(values)||CASE_KEYS.some(k=>!Number.isInteger(Number(values[k]))||Number(values[k])<0||Number(values[k])>1000000))return json({error:'Укажите целую цену каждого кейса от 0 до 1 000 000.'},400);
+      patch.case_prices=Object.fromEntries(CASE_KEYS.map(k=>[k,Number(values[k])]));
     }
     if(body.telegramUrl!==undefined){
       try{const u=new URL(String(body.telegramUrl));if(u.protocol!=='https:'||!['t.me','www.t.me','telegram.me','www.telegram.me'].includes(u.hostname.toLowerCase())||u.pathname==='/'||u.username||u.password)throw 0;patch.telegram_url=u.href}catch{return json({error:'Введите ссылку формата https://t.me/имя_канала.'},400)}
@@ -209,9 +221,9 @@ export default {
     try {
       if(url.pathname==='/api/public-settings'&&request.method==='GET'){
         requireSecrets(env);
-        const rows=await sb(env,'/rest/v1/cf_admin_settings?select=shop_prices,telegram_url&id=eq.true');
+        const rows=await sb(env,'/rest/v1/cf_admin_settings?select=shop_prices,case_prices,telegram_url&id=eq.true');
         const row=Array.isArray(rows)?rows[0]:null;
-        return json({shopPrices:row?.shop_prices||DEFAULT_PRICES,telegramUrl:row?.telegram_url||'https://t.me/CUBEFIGHTCR'});
+        return json({shopPrices:row?.shop_prices||DEFAULT_PRICES,casePrices:row?.case_prices||DEFAULT_CASE_PRICES,telegramUrl:row?.telegram_url||'https://t.me/CUBEFIGHTCR'});
       }
       if(url.pathname.startsWith('/api/admin/'))return await adminApi(request,env,url);
       if(url.pathname==='/console'||url.pathname==='/console/')return env.ASSETS.fetch(new Request(new URL('/admin.html',request.url),request));
