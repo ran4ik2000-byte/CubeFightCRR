@@ -16,10 +16,12 @@ create table if not exists public.cf_admin_settings (
   password_salt text,
   session_version bigint not null default 1,
   shop_prices jsonb not null default '{"50":19,"70":25,"100":35,"150":49,"170":55,"200":63,"250":75,"300":89,"500":139,"800":209,"1000":249,"1500":359,"2000":459,"2500":549,"3000":629}'::jsonb,
+  case_prices jsonb not null default '{"weapon":35,"armor":40,"food":15,"utility":65}'::jsonb,
   telegram_url text not null default 'https://t.me/CUBEFIGHTCR',
   updated_at timestamptz not null default now()
 );
 insert into public.cf_admin_settings(id) values(true) on conflict(id) do nothing;
+alter table public.cf_admin_settings add column if not exists case_prices jsonb not null default '{"weapon":35,"armor":40,"food":15,"utility":65}'::jsonb;
 alter table public.cf_admin_settings enable row level security;
 
 create table if not exists public.cf_admin_item_catalog (
@@ -309,3 +311,55 @@ insert into public.cf_admin_item_catalog(item_id,display_name,kind,rarity,damage
 ('u25','Защитный купол','utility','m',NULL,NULL,NULL,'dm',2,'/catalog-icons/63ab6d5561ca658eaa30.png'),
 ('u26','Защитный купол','utility','l',NULL,NULL,NULL,'dm',4,'/catalog-icons/63ab6d5561ca658eaa30.png')
 on conflict(item_id) do update set display_name=excluded.display_name,kind=excluded.kind,rarity=excluded.rarity,damage=excluded.damage,armor=excluded.armor,food=excluded.food,utility_key=excluded.utility_key,quantity=excluded.quantity,icon_url=excluded.icon_url;
+
+
+-- Return only the signed-in player's moderation flags for near-real-time client checks.
+create or replace function public.cf_get_my_status()
+returns table(account_blocked boolean, local_game_blocked boolean)
+language sql stable security definer
+set search_path = public, pg_temp
+as $$
+  select coalesce(p.account_blocked,false), coalesce(p.local_game_blocked,false)
+  from public.cf_player_profiles p where p.user_id=auth.uid() limit 1;
+$$;
+revoke all on function public.cf_get_my_status() from public,anon;
+grant execute on function public.cf_get_my_status() to authenticated;
+
+-- Admin-only paginated user list with email from Supabase Auth.
+create or replace function public.cf_admin_list_users(p_offset integer, p_limit integer)
+returns table(user_id uuid,email text,display_name text,friend_code text,save_data jsonb,account_blocked boolean,local_game_blocked boolean,created_at timestamptz)
+language sql stable security definer
+set search_path = public, auth, pg_temp
+as $$
+  select p.user_id,u.email,p.display_name,p.friend_code,p.save_data,
+         coalesce(p.account_blocked,false),coalesce(p.local_game_blocked,false),p.created_at
+  from public.cf_player_profiles p
+  left join auth.users u on u.id=p.user_id
+  order by p.created_at desc,p.user_id
+  offset greatest(0,coalesce(p_offset,0))
+  limit greatest(1,least(201,coalesce(p_limit,101)));
+$$;
+revoke all on function public.cf_admin_list_users(integer,integer) from public,anon,authenticated;
+grant execute on function public.cf_admin_list_users(integer,integer) to service_role;
+
+-- Exclude moderated accounts from public leaderboard results.
+create or replace function public.cf_leaderboard()
+returns table(rank bigint,nickname text,waves integer,coins integer,play_time_seconds bigint)
+language sql stable security definer
+set search_path = public, pg_temp
+as $$
+  select row_number() over (
+           order by scores.waves desc,scores.coins desc,scores.play_time_seconds desc,
+                    scores.nickname asc,scores.user_id asc
+         ) as rank,
+         scores.nickname,scores.waves,scores.coins,scores.play_time_seconds
+  from (
+    select p.user_id,
+           coalesce(nullif(p.display_name,''),'P'||left(p.friend_code,7)) as nickname,
+           case when p.save_data->>'cf_best' ~ '^[0-9]{1,9}$' then (p.save_data->>'cf_best')::integer else 0 end as waves,
+           case when p.save_data->'cf'->>'coins' ~ '^[0-9]{1,9}$' then (p.save_data->'cf'->>'coins')::integer else 0 end as coins,
+           case when p.save_data->>'cf_playtime_seconds' ~ '^[0-9]{1,12}$' then (p.save_data->>'cf_playtime_seconds')::bigint else 0 end as play_time_seconds
+    from public.cf_player_profiles p
+    where not coalesce(p.account_blocked,false)
+  ) scores;
+$$;

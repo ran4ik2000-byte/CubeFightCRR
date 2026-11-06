@@ -1911,7 +1911,7 @@ document.addEventListener('pointerlockchange',()=>{
  if(document.pointerLockElement){ignoreUnlockAfterEnd=false;pauseOnLockLoss=true;state='playing';$('menu').style.display='none'}
  else if(ignoreUnlockAfterEnd){ignoreUnlockAfterEnd=false;pauseOnLockLoss=false}
  else if(state==='playing'&&pauseOnLockLoss){pauseOnLockLoss=false;state='paused';$('ttl').textContent='ПАУЗА';$('bStart').textContent='Продолжить';if(invAfterLock){invAfterLock=0;showMenu('mQ')}else{quickMenu=0;showMenu('mMain')}}});
-$('bStart').onclick=()=>{if(window.cfLocalGameBlocked&&state!=='paused'){banner('Локальная игра недоступна для этого аккаунта');return}musicStart('battle');try{if(state!=='paused')newGame()}catch(e){setTimeout(()=>{throw e})}
+$('bStart').onclick=()=>{if(window.cfAccountBlocked){banner('Аккаунт заблокирован. Обратитесь в поддержку.');return}musicStart('battle');try{if(state!=='paused')newGame()}catch(e){setTimeout(()=>{throw e})}
  $('ttl').textContent='CUBEFIGHT';lock();
  // запасной вариант: если браузер не дал захватить мышь (например, в окне предпросмотра) — всё равно начинаем игру
  setTimeout(()=>{if(!document.pointerLockElement&&state!=='playing'){state='playing';$('menu').style.display='none'}},150)};
@@ -2204,6 +2204,13 @@ function renderCase(){const pr=PRICE[caseKind],need=pr-coins,need10=pr*10-coins;
  const pool=caseKind===3?UTIL:caseKind===2?FOODS:ITEMS.filter(i=>!i.start&&isA(i)===(caseKind===1)),pw=i=>i.util?i.q:i.food?i.food:isA(i)?i.arm:i.dmg;
  $('drops').innerHTML='<h3>Что может выпасть</h3>'+['l','m','e','r','c'].map(r=>{const a=pool.filter(i=>i.r===r).sort((x,y)=>pw(y)-pw(x));if(!a.length)return '';
   return '<div class="dg" style="--c:'+RAR[r].col+'"><div class="dh"><b>'+RAR[r].n+'</b><span>'+RAR[r].w+'% · '+a.length+' шт.</span></div><div class="ig">'+a.map(i=>'<div class="it" style="border-color:'+RAR[r].col+'"><img src="'+ico(i)+'"><span style="color:'+RAR[r].col+'">'+i.n+(cntOf(i)?' <u style="color:#7bd35a;cursor:default">✓'+(cntOf(i)>1?'×'+cntOf(i):'')+'</u>':'')+'<br><b style="color:#fff">'+statOf(i)+'</b> <i>'+(RAR[r].w/a.length).toFixed(1)+'%</i></span></div>').join('')+'</div></div>'}).join('')}
+window.cfUpdateCasePrices=function(values){
+ if(!values||typeof values!=='object')return;
+ const keys=['weapon','armor','food','utility'];
+ const ids=['pW','pA','pF','pU'];
+ keys.forEach((key,index)=>{const value=Number(values[key]);if(Number.isInteger(value)&&value>=0&&value<=1000000){PRICE[index]=value;const label=$(ids[index])?.querySelector('small');if(label)label.textContent=value+' монет'}});
+ renderCase();
+};
 $('pW').onclick=()=>{if(busy)return;caseKind=0;$('cMulti').innerHTML='';$('cw').className='';$('cRes').innerHTML='';renderCase()};
 $('pA').onclick=()=>{if(busy)return;caseKind=1;$('cMulti').innerHTML='';$('cw').className='ar';$('cRes').innerHTML='';renderCase()};
 // ---------- еда, голод, жемчуг, слоты ----------
@@ -3268,6 +3275,7 @@ addEventListener('beforeunload',()=>{try{if(NET.peer)NET.peer.destroy()}catch(e)
   if(round-1>best){best=round-1;try{localStorage.setItem('cf_best',best)}catch(e){}}
   state='over';try{document.exitPointerLock()}catch(e){}$('ttl').textContent='CUBEFIGHT';$('bStart').textContent='Играть';showMenu('mMain')};
   $('bLocal').onclick=()=>{
+  if(window.cfLocalGameBlocked){window.cfUpdatePlayMode&&window.cfUpdatePlayMode();return}
   if(NET.on){ // уже в сетевой игре — кнопка «Покинуть комнату»
    mpLeave();state='menu';try{document.exitPointerLock()}catch(e){}$('ttl').textContent='CUBEFIGHT';$('bStart').textContent='Играть';showMenu('mMain');return}
   mpMsg('');showMenu('mMP');loadPeer(()=>{})};
@@ -4356,7 +4364,15 @@ body.mob #menu #mMain{max-height:calc(100dvh - 12px)!important;overflow-y:auto!i
       !!SUPABASE_PUBLIC_KEY && !/YOUR_|service_role|secret/i.test(SUPABASE_PUBLIC_KEY);
   }
   function setStatus(message,tone){
-    status.textContent=message||'';
+    status.replaceChildren();
+    if(message==='CF_ACCOUNT_BLOCKED'){
+      const text=document.createElement('span');
+      text.textContent='Ваш аккаунт заблокирован. Обратитесь в поддержку в нашем Telegram: ';
+      const link=document.createElement('a');
+      link.href=window.cfTelegramUrl||'https://t.me/CUBEFIGHTCR';
+      link.target='_blank';link.rel='noopener noreferrer';link.textContent='открыть канал';
+      status.append(text,link);
+    }else status.textContent=message||'';
     status.dataset.tone=tone||'';
   }
   function setMode(next){
@@ -4397,10 +4413,17 @@ body.mob #menu #mMain{max-height:calc(100dvh - 12px)!important;overflow-y:auto!i
   function clearGameCache(){gameCacheKeys.forEach(k=>{try{localStorage.removeItem(k)}catch(e){}})}
   async function hydrateAccount(user){
     const client=await getClient();
+    const {data:flagsData,error:flagsError}=await client.rpc('cf_get_my_status');
+    if(flagsError)throw flagsError;
+    const flags=Array.isArray(flagsData)?flagsData[0]:flagsData;
+    if(flags&&flags.account_blocked){window.cfAccountBlocked=true;throw new Error('CF_ACCOUNT_BLOCKED')}
+    window.cfAccountBlocked=false;
     const {data:profile,error}=await client.from('cf_player_profiles').select('user_id,friend_code,display_name,save_data,local_game_blocked').eq('user_id',user.id).maybeSingle();
     if(error)throw error;
     if(!profile)throw new Error('Профиль базы не найден. Выполни supabase/schema.sql в Supabase SQL Editor.');
-    window.cfLocalGameBlocked=profile.local_game_blocked===true;window.cfDisplayName=String(profile.display_name||'');if(typeof window.cfUpdateSettingsNickname==='function')window.cfUpdateSettingsNickname(window.cfDisplayName);
+    window.cfLocalGameBlocked=!!(flags&&flags.local_game_blocked)||profile.local_game_blocked===true;
+    if(typeof window.cfUpdatePlayMode==='function')window.cfUpdatePlayMode();
+    window.cfDisplayName=String(profile.display_name||'');if(typeof window.cfUpdateSettingsNickname==='function')window.cfUpdateSettingsNickname(window.cfDisplayName);
     window.cfHydrating=true;
     try{
       let saved=profile.save_data&&typeof profile.save_data==='object'&&!Array.isArray(profile.save_data)?profile.save_data:{};
@@ -4448,7 +4471,7 @@ body.mob #menu #mMain{max-height:calc(100dvh - 12px)!important;overflow-y:auto!i
       }catch(error){
         authenticated=false;window.cfCloudReady=false;window.cfAccountUserId=null;
         const m=String(error&&error.message||'');
-        showGate(m.toLowerCase().includes('cf_player_profiles')||m.toLowerCase().includes('schema cache')||m.toLowerCase().includes('cf_list_friends')?'База ещё не настроена. Выполни supabase/schema.sql в Supabase SQL Editor, затем попробуй снова.':friendlyError(error),'error','login');
+        showGate(m.toLowerCase().includes('cf_get_my_status')?'Обнови базу: выполни supabase/admin_migration.sql в Supabase SQL Editor, затем попробуй снова.':m.toLowerCase().includes('cf_player_profiles')||m.toLowerCase().includes('schema cache')||m.toLowerCase().includes('cf_list_friends')?'База ещё не настроена. Выполни supabase/schema.sql в Supabase SQL Editor, затем попробуй снова.':friendlyError(error),'error','login');
       }
     })();
     accountBootPromise=task.finally(()=>{accountBootPromise=null;accountBootUserId=null;});
@@ -4456,6 +4479,7 @@ body.mob #menu #mMain{max-height:calc(100dvh - 12px)!important;overflow-y:auto!i
   }
   function friendlyError(error){
     const m=String(error&&error.message||'').toLowerCase();
+    if(m==='cf_account_blocked'||m.includes('user_banned')||m.includes('user banned')||m.includes('account is banned')||m.includes('banned')||m.includes('user_not_allowed'))return 'CF_ACCOUNT_BLOCKED';
     if(m.includes('invalid login credentials'))return 'Неверная почта или пароль.';
     if(m.includes('email not confirmed'))return 'Сначала подтверди почту по ссылке из письма.';
     if(m.includes('already registered')||m.includes('user already registered'))return 'Этот адрес уже зарегистрирован — выбери «Вход». ';
@@ -4612,6 +4636,30 @@ body.mob #menu #mMain{max-height:calc(100dvh - 12px)!important;overflow-y:auto!i
   window.cfCloudQueue=cloudQueue;
   window.cfCloudSnapshot=accountSnapshot;
   window.cfCloudReady=false;
+  let moderationCheckBusy=false;
+  async function checkModerationStatus(){
+    if(moderationCheckBusy||!authenticated||!window.cfAccountUserId)return;
+    moderationCheckBusy=true;
+    try{
+      const client=await getClient();
+      const {data,error}=await client.rpc('cf_get_my_status');
+      if(error)throw error;
+      const flags=Array.isArray(data)?data[0]:data;
+      if(!flags)return;
+      const wasLocallyBlocked=window.cfLocalGameBlocked===true;
+      window.cfLocalGameBlocked=flags.local_game_blocked===true;
+      if(typeof window.cfUpdatePlayMode==='function')window.cfUpdatePlayMode();
+      if(window.cfLocalGameBlocked&&!wasLocallyBlocked&&typeof window.cfHandleLocalGameBlocked==='function')window.cfHandleLocalGameBlocked();
+      if(flags.account_blocked){
+        window.cfAccountBlocked=true;authenticated=false;window.cfCloudReady=false;window.cfAccountUserId=null;
+        clearTimeout(cloudTimer);clearGameCache();
+        try{await client.auth.signOut({scope:'local'})}catch(e){}
+        showGate('CF_ACCOUNT_BLOCKED','error','login');
+      }else window.cfAccountBlocked=false;
+    }catch(error){console.warn('Moderation status check failed:',error)}
+    finally{moderationCheckBusy=false}
+  }
+  setInterval(checkModerationStatus,5000);
   setMode('signup');
   bootAuth();
 })();
@@ -4680,14 +4728,38 @@ body.mob #phoneMenuScaleWrap{display:flex;}
  const donateButton=document.getElementById('bDonate');
  if(donateButton)donateButton.addEventListener('click',()=>showMenu('mDonate'));
  const back=document.getElementById('bDonateBack');if(back)back.addEventListener('click',()=>showMenu('mMain'));
- let chosenPack=null;const packButtons=[...document.querySelectorAll('#mDonate .donate-pack')];const payButton=document.getElementById('bDonatePay');
- packButtons.forEach(button=>button.addEventListener('click',()=>{
+ let chosenPack=null;let packButtons=[...document.querySelectorAll('#mDonate .donate-pack')];const payButton=document.getElementById('bDonatePay');
+ const grid=document.querySelector('#mDonate .donate-grid');
+ function choosePack(button){
   chosenPack={coins:Number(button.dataset.coins),rubles:Number(button.dataset.rubles)};
   packButtons.forEach(card=>card.classList.toggle('selected',card===button));
   const selection=document.getElementById('donateSelection');if(selection)selection.textContent='Выбрано: '+chosenPack.coins+' монет — '+chosenPack.rubles+' ₽.';
   if(payButton)payButton.disabled=false;
   const status=document.getElementById('donateStatus');if(status)status.textContent='Нажмите «Перейти к оплате», чтобы продолжить.';
- }));
+ }
+ function bindPack(button){button.addEventListener('click',()=>choosePack(button))}
+ packButtons.forEach(bindPack);
+ window.cfRefreshDonatePacks=function(packages){
+  if(!grid||!Array.isArray(packages))return;
+  const safe=packages.filter(x=>Number.isInteger(x.coins)&&x.coins>0&&x.coins<=100000000&&Number.isInteger(x.rubles)&&x.rubles>=0&&x.rubles<=1000000).slice(0,50);
+  if(!safe.length)return;
+  grid.replaceChildren();packButtons=[];
+  for(let i=0;i<safe.length;i++){
+   const item=safe[i],button=document.createElement('button');button.type='button';button.className='donate-pack'+(i===safe.length-1?' donate-pack-featured':'');button.dataset.coins=String(item.coins);button.dataset.rubles=String(item.rubles);button.setAttribute('aria-label',`${item.coins} монет за ${item.rubles} рублей`);
+   const icon=document.createElement('span');icon.className='donate-coin';icon.textContent='✦';
+   const amount=document.createElement('strong');amount.textContent=Number(item.coins).toLocaleString('ru-RU');
+   const unit=document.createElement('span');unit.className='donate-unit';unit.textContent='монет';
+   const price=document.createElement('b');price.textContent=Number(item.rubles).toLocaleString('ru-RU')+' ₽';
+   const hint=document.createElement('small');hint.textContent=i===safe.length-1?'Лучшее предложение':'Выбрать пакет';
+   button.append(icon,amount,unit,price,hint);grid.appendChild(button);packButtons.push(button);bindPack(button);
+  }
+  if(chosenPack){
+   const current=packButtons.find(button=>Number(button.dataset.coins)===chosenPack.coins&&Number(button.dataset.rubles)===chosenPack.rubles);
+   if(current)current.classList.add('selected');
+   else{chosenPack=null;if(payButton)payButton.disabled=true;const status=document.getElementById('donateStatus');if(status)status.textContent='Оплата не подключена — покупка и начисление недоступны.';const selection=document.getElementById('donateSelection');if(selection)selection.textContent='Сначала выберите сумму.'}
+  }
+ };
+
  if(payButton)payButton.addEventListener('click',()=>{
   const status=document.getElementById('donateStatus');if(!chosenPack){if(status)status.textContent='Сначала выберите сумму.';return}
   if(status)status.textContent='Провайдер оплаты не подключён — переход к оплате недоступен. Покупка не совершена.';
@@ -5062,7 +5134,7 @@ body.mob #menu #mSet #phoneMenuScaleWrap{display:flex}
   }
   async function loadLeaderboard(force){
     if(loading||!window.cfCloudReady||!window.cfAccountUserId)return;
-    if(!force&&Date.now()-lastLoaded<30000)return;
+    if(!force&&Date.now()-lastLoaded<8000)return;
     loading=true;setStatus('Обновляю рейтинг…');
     try{
       const client=await window.cfSupabaseClient();
@@ -5096,7 +5168,7 @@ body.mob #menu #mSet #phoneMenuScaleWrap{display:flex}
   ['menu','mMain','bDonate','devSel','cfAuthGate'].forEach(id=>{const el=document.getElementById(id);if(el)observer.observe(el,{attributes:true,attributeFilter:['style','class']})});
   window.addEventListener('resize',updateVisibility);
   window.addEventListener('cf-account-ready',updateVisibility);
-  setInterval(()=>{if(panel.style.display==='flex')loadLeaderboard(false)},30000);
+  setInterval(()=>{if(panel.style.display==='flex')loadLeaderboard(false)},8000);
   updateVisibility();
 
   // Count only visible, authenticated time. Persist every 15 seconds to avoid excessive cloud writes.
@@ -5253,6 +5325,8 @@ body.mob #menu #mSet :focus-visible{outline:3px solid #ffe27a;outline-offset:2px
 #mPlayChoice #bLocal{min-height:54px;background:var(--tex-lapis,#244c98) 0 0/64px 64px!important;--g:#4d7dff}
 #mPlayChoice #cfPlaySingle{background:var(--tex-moss,#356e31) 0 0/64px 64px!important;--g:#8bd36b}
 #mPlayChoice #cfPlayBack{background:var(--tex-stone,#7f7a87) 0 0/64px 64px!important;--g:#d4d4d4}
+#mPlayChoice #bLocal:disabled{opacity:.42!important;filter:grayscale(1)!important;cursor:not-allowed!important;transform:none!important}
+#mPlayChoice #cfLocalBlockNote{margin:0;padding:10px 12px;border:1px solid #ab6355;border-radius:8px;background:#3b1b19;color:#ffd3cb;font:600 13px/1.45 system-ui,'Segoe UI',Arial,sans-serif}
 #mPlayChoice button:hover:not(:disabled){filter:brightness(1.15);transform:translateY(-1px)}
 #mPlayChoice button:focus-visible,#menu #mSet .cf-settings-tab:focus-visible{outline:3px solid #ffe27a;outline-offset:3px}
 
@@ -5312,11 +5386,23 @@ body:not(.cf-multiplayer-chat) #sysChat,body:not(.cf-multiplayer-chat) #cfChatFe
 
   // Add the dedicated mode picker and reuse the existing local-game entry point.
   const picker=document.createElement('section');picker.id='mPlayChoice';picker.className='panel';picker.setAttribute('aria-labelledby','cfPlayTitle');picker.setAttribute('role','dialog');picker.setAttribute('aria-modal','true');
-  picker.innerHTML='<h1 id="cfPlayTitle">Выбери режим игры</h1><p>Выбери, как хочешь играть</p><button id="cfPlaySingle" type="button">Одиночная игра</button><button id="cfPlayBack" type="button">← В главное меню</button>';
+  picker.innerHTML='<h1 id="cfPlayTitle">Выбери режим игры</h1><p>Выбери, как хочешь играть</p><button id="cfPlaySingle" type="button">Одиночная игра</button><button id="bLocal" type="button">Локальная игра</button><p id="cfLocalBlockNote" hidden>Локальная игра недоступна: вы заблокированы в локальной игре.</p><button id="cfPlayBack" type="button">← В главное меню</button>';
   menu.appendChild(picker);
   const localButton=$('bLocal');
-  if(localButton)picker.insertBefore(localButton,$('cfPlayBack'));
+  const localPlaceholder=picker.querySelector('#bLocal');
+  if(localButton&&localPlaceholder)localPlaceholder.replaceWith(localButton);
+  const localBlockNote=$('cfLocalBlockNote');
   const singleButton=$('cfPlaySingle'),backButton=$('cfPlayBack'),startButton=$('bStart');
+  window.cfUpdatePlayMode=function(){
+    const blocked=window.cfLocalGameBlocked===true;
+    if(localButton){localButton.disabled=blocked;localButton.setAttribute('aria-disabled',String(blocked));localButton.title=blocked?'Доступ к локальной игре заблокирован':'';localButton.classList.toggle('cf-local-blocked',blocked)}
+    if(localBlockNote){localBlockNote.hidden=!blocked;localBlockNote.textContent=(typeof lang!=='undefined'&&lang==='en')?'Local play is disabled for this account.':'Вы заблокированы в локальной игре — доступ отключён.'}
+  };
+  window.cfHandleLocalGameBlocked=function(){
+    window.cfUpdatePlayMode();
+    if(typeof NET!=='undefined'&&NET.on){try{mpLeave()}catch(e){};try{document.exitPointerLock()}catch(e){};state='menu';showMenu('mPlayChoice')}
+  };
+  window.cfUpdatePlayMode();
 
   // Relocate account and game controls to their requested settings groups.
   const sections=[...grid.querySelectorAll('.cf-settings-section')];
@@ -5343,6 +5429,7 @@ body:not(.cf-multiplayer-chat) #sysChat,body:not(.cf-multiplayer-chat) #cfChatFe
     const en=typeof lang!=='undefined'&&lang==='en';
     if(backSettings){backSettings.textContent=en?'Save and exit':'Сохранить и выйти';backSettings.setAttribute('aria-label',backSettings.textContent);backSettings.title=en?'Save settings and return to menu':'Сохранить настройки и вернуться в меню'}
     if(localButton&&localButton.parentNode===picker)localButton.textContent=en?'Local Game':'Локальная игра';
+    if(localBlockNote)localBlockNote.textContent=en?'Local play is disabled for this account.':'Вы заблокированы в локальной игре — доступ отключён.';
     if(deviceButton)deviceButton.textContent=en?'📱💻 Device':'📱💻 Устройство';
     if(singleButton)singleButton.textContent=en?'Single-player':'Одиночная игра';
     const title=$('cfPlayTitle');if(title)title.textContent=en?'Choose a game mode':'Выбери режим игры';
@@ -5401,6 +5488,11 @@ body:not(.cf-multiplayer-chat) #sysChat,body:not(.cf-multiplayer-chat) #cfChatFe
     if(originalStart)originalStart.call(startButton,new MouseEvent('click',{bubbles:true}));
   });
   backButton?.addEventListener('click',()=>showMenu('mMain'));
+  document.addEventListener('click',event=>{
+    if(window.cfLocalGameBlocked&&event.target?.closest?.('#bMpCreate,#bMpJoin,#bMpGo,#bMpStart')){
+      event.preventDefault();event.stopImmediatePropagation();showMenu('mPlayChoice');window.cfUpdatePlayMode();
+    }
+  },true);
 
   const currentShowMenu=showMenu;
   showMenu=function(id){
@@ -5493,6 +5585,24 @@ body.mob #menu #mSet{position:fixed!important;left:50%!important;top:50%!importa
 </script>
 
 <script id="cf-admin-public-settings">
-(()=>{async function apply(){try{const r=await fetch('/api/public-settings',{cache:'no-store'});if(!r.ok)return;const d=await r.json();if(typeof d.telegramUrl==='string'&&/^https:\/\/(?:www\.)?t\.me\/[A-Za-z0-9_+\/-]+/i.test(d.telegramUrl)){const a=document.getElementById('cfTelegramLink');if(a)a.href=d.telegramUrl}const prices=d.shopPrices||{};document.querySelectorAll('.donate-pack').forEach(b=>{const coins=b.dataset.coins,price=prices[coins];if(!Number.isInteger(Number(price))||Number(price)<0)return;b.dataset.rubles=String(Number(price));const p=b.querySelector('b');if(p)p.textContent=Number(price)+' ₽';b.setAttribute('aria-label',coins+' монет за '+Number(price)+' рублей')})}catch{}}if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',apply,{once:true});else apply()})();
+(()=>{
+ let lastShop='',lastCases='',lastTelegram='';
+ const validTelegram=value=>typeof value==='string'&&/^https:\/\/(?:www\.)?t\.me\/[A-Za-z0-9_+\/-]+\/?$/i.test(value);
+ async function apply(){
+  try{
+   const response=await fetch('/api/public-settings',{cache:'no-store'});if(!response.ok)return;
+   const data=await response.json();
+   if(validTelegram(data.telegramUrl)&&data.telegramUrl!==lastTelegram){lastTelegram=data.telegramUrl;window.cfTelegramUrl=data.telegramUrl;const link=document.getElementById('cfTelegramLink');if(link)link.href=data.telegramUrl}
+   const shop=data.shopPrices&&typeof data.shopPrices==='object'?data.shopPrices:{};
+   const shopSignature=JSON.stringify(Object.entries(shop).sort((a,b)=>Number(a[0])-Number(b[0])));
+   if(shopSignature!==lastShop){lastShop=shopSignature;const packages=Object.entries(shop).map(([coins,rubles])=>({coins:Number(coins),rubles:Number(rubles)})).filter(x=>Number.isInteger(x.coins)&&x.coins>0&&Number.isInteger(x.rubles)&&x.rubles>=0).sort((a,b)=>a.coins-b.coins);if(packages.length&&typeof window.cfRefreshDonatePacks==='function')window.cfRefreshDonatePacks(packages)}
+   const cases=data.casePrices&&typeof data.casePrices==='object'?data.casePrices:{};
+   const caseSignature=JSON.stringify(cases);
+   if(caseSignature!==lastCases){lastCases=caseSignature;if(typeof window.cfUpdateCasePrices==='function')window.cfUpdateCasePrices(cases)}
+  }catch(error){console.warn('Public game settings unavailable:',error)}
+ }
+ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',apply,{once:true});else apply();
+ setInterval(()=>{if(!document.hidden)apply()},8000);
+})();
 </script>
 </body></html>
